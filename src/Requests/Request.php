@@ -99,7 +99,9 @@ class Request
     public function segments()
     {
         if ($this->segments === null) {
-            $this->segments = $this->parser->segments($_SERVER['PHP_SELF']);
+            $path = strpos($_SERVER['REQUEST_URI'], '?') !== false ? substr($_SERVER['REQUEST_URI'], 0, stripos($_SERVER['REQUEST_URI'], '?')) : $_SERVER['REQUEST_URI'];
+
+            $this->segments = $this->parser->segments($path);
         }
 
         return $this->segments;
