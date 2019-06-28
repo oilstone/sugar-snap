@@ -15,7 +15,8 @@
     "php": "^7.1.3",
     "garethhudson07/stitch": "dev-master",
     "oilstone/php-rsql-parser": "^1.0",
-    "oilstone/json-api": "^1.0"
+    "oilstone/json-api": "^1.0",
+    "ext-json": "*"
   },
   "repositories": [
     {

@@ -2,8 +2,17 @@
 
 namespace Api\Requests;
 
+use Oilstone\RsqlParser\Expression;
+
+/**
+ * Class Request
+ * @package Api\Requests
+ */
 class Request
 {
+    /**
+     * @var array
+     */
     protected static $keys = [
         'relations' => 'include',
         'filters' => 'filter',
@@ -11,14 +20,34 @@ class Request
         'limit' => 'limit',
     ];
 
+    /**
+     * @var
+     */
     protected $segments;
 
+    /**
+     * @var
+     */
     protected $filters;
 
+    /**
+     * @var
+     */
     protected $relations;
 
+    /**
+     * @var
+     */
     protected $sort;
 
+    /**
+     * @var Parser
+     */
+    protected $parser;
+
+    /**
+     * Request constructor.
+     */
     public function __construct()
     {
         $this->parser = new Parser();
@@ -35,25 +64,9 @@ class Request
     /**
      * @param string $key
      */
-    public static function getRelationsKey()
-    {
-        return static::$keys['relations'];
-    }
-
-    /**
-     * @param string $key
-     */
     public static function setFiltersKey(string $key)
     {
         static::$keys['filters'] = $key;
-    }
-
-    /**
-     * @param string $key
-     */
-    public static function getFiltersKey()
-    {
-        return static::$keys['filters'];
     }
 
     /**
@@ -65,23 +78,24 @@ class Request
     }
 
     /**
-     * @return string
+     * @param string $key
      */
-    public static function getsortKey()
-    {
-        return static::$keys['sort'];
-    }
-
     public static function setLimitKey(string $key)
     {
         static::$keys['limit'] = $key;
     }
 
+    /**
+     * @return mixed
+     */
     public static function getLimitKey()
     {
         return static::$keys['limit'];
     }
 
+    /**
+     * @return array
+     */
     public function segments()
     {
         if ($this->segments === null) {
@@ -91,6 +105,9 @@ class Request
         return $this->segments;
     }
 
+    /**
+     * @return array
+     */
     public function relations()
     {
         if ($this->relations === null) {
@@ -100,6 +117,17 @@ class Request
         return $this->relations;
     }
 
+    /**
+     * @return mixed
+     */
+    public static function getRelationsKey()
+    {
+        return static::$keys['relations'];
+    }
+
+    /**
+     * @return Expression
+     */
     public function filters()
     {
         if ($this->filters === null) {
@@ -109,6 +137,17 @@ class Request
         return $this->filters;
     }
 
+    /**
+     * @return mixed
+     */
+    public static function getFiltersKey()
+    {
+        return static::$keys['filters'];
+    }
+
+    /**
+     * @return array
+     */
     public function sort()
     {
         if ($this->sort === null) {
@@ -116,5 +155,13 @@ class Request
         }
 
         return $this->sort;
+    }
+
+    /**
+     * @return string
+     */
+    public static function getSortKey()
+    {
+        return static::$keys['sort'];
     }
 }

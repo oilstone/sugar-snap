@@ -2,12 +2,26 @@
 
 namespace Api\Requests;
 
+/**
+ * Class Order
+ * @package Api\Requests
+ */
 class Order
 {
+    /**
+     * @var
+     */
     protected $property;
 
+    /**
+     * @var
+     */
     protected $direction;
 
+    /**
+     * @param string $input
+     * @return Order
+     */
     public static function parse(string $input)
     {
         $direction = 'ASC';
@@ -24,11 +38,18 @@ class Order
         return (new static())->setProperty($input)->setDirection($direction);
     }
 
+    /**
+     * @return string
+     */
     public function getProperty(): string
     {
         return $this->property;
     }
 
+    /**
+     * @param string $property
+     * @return $this
+     */
     public function setProperty(string $property)
     {
         $this->property = $property;
@@ -36,11 +57,18 @@ class Order
         return $this;
     }
 
+    /**
+     * @return mixed
+     */
     public function getDirection()
     {
         return $this->direction;
     }
 
+    /**
+     * @param string $direction
+     * @return $this
+     */
     public function setDirection(string $direction)
     {
         $this->direction = $direction;

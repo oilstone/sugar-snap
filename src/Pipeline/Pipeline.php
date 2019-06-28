@@ -3,16 +3,31 @@
 namespace Api\Pipeline;
 
 use Api\Registry;
+use Api\Requests\Request;
 use Api\Resources\Relations\Relation;
+use Api\Resources\Resource;
 
+/**
+ * Class Pipeline
+ * @package Api\Pipeline
+ */
 class Pipeline
 {
+    /**
+     * @var array
+     */
     protected $items = [];
 
-    public function resolve($request)
+    /**
+     * @param Request $request
+     * @return $this
+     */
+    public function resolve(Request $request)
     {
         $pairs = array_chunk($request->segments(), 2);
         $last = array_pop($pairs);
+
+        /** @var Resource|null $resource */
         $resource = null;
 
         foreach ($pairs as $pair) {
@@ -30,6 +45,9 @@ class Pipeline
         return $this;
     }
 
+    /**
+     * @return array
+     */
     public function ancestors()
     {
         $count = count($this->items);
@@ -37,11 +55,17 @@ class Pipeline
         return $count > 1 ? array_slice($this->items, 0, -1) : [];
     }
 
+    /**
+     * @return array
+     */
     public function all()
     {
         return $this->items;
     }
 
+    /**
+     * @return mixed|null
+     */
     public function current()
     {
         $count = count($this->items);

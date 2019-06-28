@@ -3,8 +3,16 @@
 namespace Api;
 
 
+/**
+ * Class CustomResourceRepository
+ * @package Api
+ */
 class CustomResourceRepository
 {
+    /**
+     * @param $id
+     * @return array
+     */
     public function find($id)
     {
         return [
@@ -13,6 +21,11 @@ class CustomResourceRepository
         ];
     }
 
+    /**
+     * @param $request
+     * @param $pipeline
+     * @return array
+     */
     public function get($request, $pipeline)
     {
         return [

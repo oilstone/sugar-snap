@@ -2,12 +2,17 @@
 
 namespace Api\Requests;
 
+use Oilstone\RsqlParser\Expression;
 use Oilstone\RsqlParser\Parser as RsqlParser;
 
+/**
+ * Class Parser
+ * @package Api\Requests
+ */
 class Parser
 {
     /**
-     * @param string $path
+     * @param string $input
      * @return array
      */
     public function segments(string $input)
@@ -16,8 +21,8 @@ class Parser
     }
 
     /**
-     * @param string $filters
-     * @return \Oilstone\RsqlParser\Expression
+     * @param string $input
+     * @return Expression
      */
     public function filters(string $input)
     {
@@ -33,7 +38,7 @@ class Parser
         $relations = [];
         $items = array_filter(explode(',', $input));
 
-        foreach($items as $item) {
+        foreach ($items as $item) {
             $relations[] = Relation::parse($item);
         }
 

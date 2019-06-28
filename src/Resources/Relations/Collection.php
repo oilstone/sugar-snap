@@ -4,8 +4,15 @@ namespace Api\Resources\Relations;
 
 use Closure;
 
+/**
+ * Class Collection
+ * @package Api\Resources\Relations
+ */
 class Collection
 {
+    /**
+     * @var array
+     */
     protected $items = [];
 
     /**
@@ -34,20 +41,20 @@ class Collection
 
     /**
      * @param string $name
-     * @return bool
-     */
-    public function has(string $name)
-    {
-        return array_key_exists($name, $this->items);
-    }
-
-    /**
-     * @param string $name
      * @return Relation|null
      */
     public function get(string $name): ?Relation
     {
         return $this->has($name) ? $this->resolve($name) : null;
+    }
+
+    /**
+     * @param string $name
+     * @return bool
+     */
+    public function has(string $name)
+    {
+        return array_key_exists($name, $this->items);
     }
 
     /**

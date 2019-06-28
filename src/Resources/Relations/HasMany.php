@@ -3,10 +3,16 @@
 namespace Api\Resources\Relations;
 
 use Stitch\Relations\Has;
-use Stitch\Queries\Relations\Has as Query;
 
+/**
+ * Class HasMany
+ * @package Api\Resources\Relations
+ */
 class HasMany extends Relation
 {
+    /**
+     * @return mixed
+     */
     public function query()
     {
         return (new Has(
