@@ -2,13 +2,12 @@
 
 namespace Api\Resources;
 
+use Api\Representations\Contracts\Representation;
+use Api\Representations\JsonApi;
 use Api\Resources\Relations\Collection as Relations;
 use Api\Resources\Relations\HasMany;
 use Api\Resources\Relations\Relation;
 use Closure;
-use Neomerx\JsonApi\Encoder\Encoder;
-use Neomerx\JsonApi\Schema\Arr as ArrSchema;
-use Neomerx\JsonApi\Wrappers\Arr;
 
 /**
  * Class Resource
@@ -32,6 +31,11 @@ class Resource
     protected $relations;
 
     /**
+     * @var Representation
+     */
+    protected $representation;
+
+    /**
      * Resource constructor.
      * @param $repository
      */
@@ -39,6 +43,7 @@ class Resource
     {
         $this->repository = $repository;
         $this->relations = new Relations();
+        $this->representation = new JsonApi();
     }
 
     /**
@@ -143,20 +148,6 @@ class Resource
      */
     public function get($request, $pipeline)
     {
-        $encoder = Encoder::instance([
-            Arr::class => ArrSchema::class
-        ])->withEncodeOptions(JSON_PRETTY_PRINT)
-            ->withIncludedPaths([
-                'items.product-item-attributes'
-            ]);
-
-
-        var_dump($this->repository->get($request, $pipeline));
-        exit;
-
-        return $encoder->encodeCollectionArray(
-            'products',
-            $this->repository->get($request, $pipeline)
-        );
+        return $this->representation->forCollection($request, $this->repository->get($request, $pipeline));
     }
 }
