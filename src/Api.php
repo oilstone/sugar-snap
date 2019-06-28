@@ -23,13 +23,15 @@ class Api
     protected static $prefix = '';
 
     /**
+     * @param string $host
      * @param string $database
      * @param string $username
      * @param string $password
      */
-    public static function connect(string $database, string $username, string $password)
+    public static function connect(string $host, string $database, string $username, string $password)
     {
-        Stitch::Connect($database, $username, $password);
+        Stitch::setDatabaseHost($host);
+        Stitch::connect($database, $username, $password);
     }
 
     /**
