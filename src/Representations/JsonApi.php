@@ -3,11 +3,13 @@
 namespace Api\Representations;
 
 use Api\Representations\Contracts\Representation as RepresentationContract;
+use Api\Requests\Relation;
 use Api\Requests\Request;
 use Api\Support\Str;
 use Neomerx\JsonApi\Encoder\Encoder;
 use Neomerx\JsonApi\Schema\Arr as ArrSchema;
 use Neomerx\JsonApi\Wrappers\Arr;
+use function utf8_encode;
 
 /**
  * Class JsonApi
@@ -37,12 +39,36 @@ class JsonApi extends Representation implements RepresentationContract
      */
     public function forCollection(Request $request, array $collection)
     {
-        $this->encoder->withIncludedPaths(['exhibitions']);
+        $this->encoder->withIncludedPaths($this->collapseRelations($request->relations()));
 
         return $this->encoder->encodeCollectionArray(
-            'museums',
+            $request->segments()[count($request->segments()) - 1],
             $this->prepare($collection)
         );
+    }
+
+    /**
+     * @param array $relations
+     * @return array
+     */
+    public function collapseRelations(array $relations): array
+    {
+        $collapsed = [];
+
+        foreach ($relations as $relation) {
+            /** @var Relation $relation */
+            if ($relation->getRelations()) {
+                $collapsed = array_merge($collapsed, array_map(function ($subRelation) use ($relation) {
+                    return $relation->getName() . '.' . $subRelation;
+                }, $this->collapseRelations($relation->getRelations())));
+
+                continue;
+            }
+
+            $collapsed[] = $relation->getName();
+        }
+
+        return $collapsed;
     }
 
     /**
@@ -64,7 +90,7 @@ class JsonApi extends Representation implements RepresentationContract
     protected function encodeUtf8(array $data): array
     {
         return array_map(function ($datum) {
-            return is_array($datum) ? $this->encodeUtf8($datum) : \utf8_encode($datum);
+            return is_array($datum) ? $this->encodeUtf8($datum) : utf8_encode($datum);
         }, $data);
     }
 

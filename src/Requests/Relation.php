@@ -2,7 +2,6 @@
 
 namespace Api\Requests;
 
-use Oilstone\RsqlParser\Exceptions\InvalidQueryStringException;
 use Oilstone\RsqlParser\Expression;
 use Oilstone\RsqlParser\Parser as RsqlParser;
 
@@ -30,7 +29,6 @@ class Relation
     /**
      * @param string $input
      * @return Relation
-     * @throws InvalidQueryStringException
      */
     public static function parse(string $input)
     {
