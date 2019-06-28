@@ -13,7 +13,7 @@ use Neomerx\JsonApi\Wrappers\Arr;
  * Class JsonApi
  * @package Api\Representations
  */
-class JsonApi implements RepresentationContract
+class JsonApi extends Representation implements RepresentationContract
 {
     /**
      * @var Encoder

@@ -2,8 +2,7 @@
 
 namespace Api\Resources;
 
-use Api\Representations\Contracts\Representation;
-use Api\Representations\JsonApi;
+use Api\Api;
 use Api\Resources\Relations\Collection as Relations;
 use Api\Resources\Relations\HasMany;
 use Api\Resources\Relations\Relation;
@@ -31,11 +30,6 @@ class Resource
     protected $relations;
 
     /**
-     * @var Representation
-     */
-    protected $representation;
-
-    /**
      * Resource constructor.
      * @param $repository
      */
@@ -43,7 +37,6 @@ class Resource
     {
         $this->repository = $repository;
         $this->relations = new Relations();
-        $this->representation = new JsonApi();
     }
 
     /**
@@ -148,6 +141,6 @@ class Resource
      */
     public function get($request, $pipeline)
     {
-        return $this->representation->forCollection($request, $this->repository->get($request, $pipeline));
+        return Api::getRepresentation()->forCollection($request, $this->repository->get($request, $pipeline));
     }
 }
