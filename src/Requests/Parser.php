@@ -17,7 +17,7 @@ class Parser
      */
     public function segments(string $input)
     {
-        return array_filter(explode('/', $input));
+        return array_values(array_filter(explode('/', $input)));
     }
 
     /**
