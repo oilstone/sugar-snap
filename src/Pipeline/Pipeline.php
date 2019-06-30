@@ -4,8 +4,7 @@ namespace Api\Pipeline;
 
 use Api\Registry;
 use Api\Requests\Request;
-use Api\Resources\Relations\Relation;
-use Api\Resources\Resource;
+use Api\Resources\Singleton;
 
 /**
  * Class Pipeline
@@ -16,31 +15,48 @@ class Pipeline
     /**
      * @var array
      */
-    protected $items = [];
+    protected $pipes = [];
+
+    public function __construct(Request $request)
+    {
+        $this->request = $request;
+    }
+
+    protected function makePipe()
+    {
+        $pipe = new Pipe();
+        $this->pipes[] = $pipe;
+
+        return $pipe;
+    }
 
     /**
      * @param Request $request
      * @return $this
      */
-    public function resolve(Request $request)
+    protected function assemble()
     {
-        $pairs = array_chunk($request->segments(), 2);
-        $last = array_pop($pairs);
+        $pipe = $this->makePipe();
+        $pieces = $this->request->segments();
 
-        /** @var Resource|null $resource */
-        $resource = null;
+        while ($pieces) {
+            $piece = array_shift($pieces);
 
-        foreach ($pairs as $pair) {
-            $resource = $resource ? $resource->getRelation($pair[0]) : Registry::get($pair[0]);
+            if ($pipe->hasEntity()) {
+                $resource = $pipe->getEntity();
+                $pipe = $this->makePipe();
 
-            $this->items[] = (new Ancestor($resource))->setData(
-                $resource->find($pair[1])
+                if (!$resource instanceof Singleton) {
+                    $pipe->setKey($piece);
+
+                    continue;
+                }
+            }
+
+            $pipe->setEntity(
+                count($this->pipes) > 1 ? $this->previous()->getRelation($piece) : Registry::get($piece)
             );
         }
-
-        $current = $resource ? $resource->getRelation($last[0]) : Registry::get($last[0]);
-
-        $this->items[] = $current instanceof Relation ? $current->getForeignResource() : $current;
 
         return $this;
     }
@@ -50,9 +66,9 @@ class Pipeline
      */
     public function ancestors()
     {
-        $count = count($this->items);
+        $count = count($this->pipes);
 
-        return $count > 1 ? array_slice($this->items, 0, -1) : [];
+        return $count > 1 ? array_slice($this->pipes, 0, -1) : [];
     }
 
     /**
@@ -60,7 +76,7 @@ class Pipeline
      */
     public function all()
     {
-        return $this->items;
+        return $this->pipes;
     }
 
     /**
@@ -68,8 +84,22 @@ class Pipeline
      */
     public function current()
     {
-        $count = count($this->items);
+        $count = count($this->pipes);
 
-        return $count ? $this->items[$count - 1] : null;
+        return $count ? $this->pipes[$count - 1] : null;
+    }
+
+    public function flow()
+    {
+        return $this->assemble()->call();
+    }
+
+    protected function call()
+    {
+        foreach ($this->pipes as $pipe) {
+            $pipe->call();
+        }
+
+        return $this->current();
     }
 }

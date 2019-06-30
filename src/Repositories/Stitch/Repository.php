@@ -48,6 +48,26 @@ class Repository
         return $this->model->where('id', $id)->get()->toArray();
     }
 
+    public function getCollection(Request $request, Pipeline $pipeline)
+    {
+
+    }
+
+    public function getScopedCollection()
+    {
+
+    }
+
+    public function getResource()
+    {
+
+    }
+
+    public function getScopedResource()
+    {
+
+    }
+
     /**
      * @param Request $request
      * @param Pipeline $pipeline

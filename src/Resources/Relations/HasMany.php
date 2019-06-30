@@ -10,15 +10,32 @@ use Stitch\Relations\Has;
  */
 class HasMany extends Relation
 {
+    protected function getLocalModel()
+    {
+        return $this->getLocalResource()->getRepository()->getModel();
+    }
+
+    protected function getForeignModel()
+    {
+        return $this->getForeignResource()->getRepository()->getmodel();
+    }
+
     /**
      * @return mixed
      */
     public function query()
     {
-        return (new Has(
-            $this->getLocalResource()->getRepository()->getModel()
-        ))->foreignModel(
-            $this->getForeignResource()->getRepository()->getmodel()
-        )->boot()->query();
+        $relation = (new Has($this->getLocalModel()))->foreignModel($this->getForeignmodel());
+
+        return $relation->boot()->query();
+    }
+
+    public function applyScope($ancestor)
+    {
+        $data = $ancestor->getData();
+        $localModel = $this->getLocalModel();
+        $primaryKey = $localModel->getTable()->getPtmaryKey()->getName();
+
+        return $this->getForeignModel()->query()->where($primaryKey, $data[$primaryKey]);
     }
 }
