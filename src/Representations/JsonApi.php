@@ -59,13 +59,13 @@ class JsonApi extends Representation implements RepresentationContract
             /** @var Relation $relation */
             if ($relation->getRelations()) {
                 $collapsed = array_merge($collapsed, array_map(function ($subRelation) use ($relation) {
-                    return $relation->getName() . '.' . $subRelation;
+                    return Str::camel($relation->getName()) . '.' . $subRelation;
                 }, $this->collapseRelations($relation->getRelations())));
 
                 continue;
             }
 
-            $collapsed[] = $relation->getName();
+            $collapsed[] = Str::camel($relation->getName());
         }
 
         return $collapsed;
