@@ -120,14 +120,15 @@ class Pipeline
      */
     protected function resolve()
     {
-        foreach ($this->ancestors() as $pipe) {
-            $pipe->resolveResource();
-        }
+//        foreach ($this->ancestors() as $pipe) {
+//            $pipe->prepare();
+//        }
 
-        $this->current()->call($this->request, );
+        //$this->current()->call($this->request, );
 
         $pipe = $this->current();
-        $pipe->getResource()->{$pipe->mehod()}($pipe->arguments());
+        $pipe->setHttpMethod($this->request->method())->prepare();
+        $pipe->getResource()->{$pipe->method()}(array_merge($pipe->arguments(), [$this->request, $this]));
 
         return $this;
     }

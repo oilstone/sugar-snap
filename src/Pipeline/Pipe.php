@@ -91,16 +91,6 @@ class Pipe
     }
 
     /**
-     * @return $this
-     */
-    public function resolveData()
-    {
-        $this->data = $this->getResource()->find($this->key);
-
-        return $this;
-    }
-
-    /**
      * @param Pipe $pipe
      * @return $this
      */
@@ -112,12 +102,30 @@ class Pipe
     }
 
     /**
+     * @return $this
+     */
+    public function prepare()
+    {
+        if ($this->scope) {
+            $this->scope->prepare();
+        }
+
+        $this->data = $this->getResource()->find($this->key);
+
+        return $this;
+    }
+
+    /**
      * @param $request
      * @param $pipeline
      * @return $this
      */
     public function call($request, $pipeline)
     {
+        if ($this->scope) {
+            $this->scope->
+        }
+
         switch ($request->method()) {
             case 'POST':
                 $method = 'create';

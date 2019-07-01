@@ -51,6 +51,20 @@ class Repository
     }
 
     /**
+     * @param $key
+     * @param Scope $scope
+     * @return mixed
+     */
+    public function getScopedByKey($key, Scope $scope)
+    {
+        return $this->model->query()
+            ->where('id', $key)
+            ->where($scope->getKey(), $scope->getValue())
+            ->get()[0]
+            ->toArray();
+    }
+
+    /**
      * @param Request $request
      * @param Pipeline $pipeline
      * @return array
