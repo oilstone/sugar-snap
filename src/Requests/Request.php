@@ -108,6 +108,14 @@ class Request
     }
 
     /**
+     * @return string
+     */
+    public function method()
+    {
+        return $_SERVER['REQUEST_METHOD'];
+    }
+
+    /**
      * @return array
      */
     public function relations()

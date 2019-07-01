@@ -18,11 +18,18 @@ class Pipeline
 
     protected $request;
 
+    /**
+     * Pipeline constructor.
+     * @param Request $request
+     */
     public function __construct(Request $request)
     {
         $this->request = $request;
     }
 
+    /**
+     * @return Pipe
+     */
     protected function makePipe()
     {
         $pipe = new Pipe();
@@ -40,17 +47,18 @@ class Pipeline
 
         foreach ($this->request->segments() as $piece) {
             if ($pipe->hasEntity()) {
-                $pipe = $this->makePipe();
-
                 if ($pipe->isCollectable()) {
                     $pipe->setKey($piece);
+                    $pipe = $this->makePipe();
 
                     continue;
                 }
+
+                $pipe = $this->makePipe();
             }
 
             if ($previous = $this->previous()) {
-                $pipe->setEntity($previous->getRelation($piece))->scope($previous);
+                $pipe->setEntity($previous->getResource()->getRelation($piece))->scope($previous);
             } else {
                 $pipe->setEntity(Registry::get($piece));
             }
@@ -97,17 +105,30 @@ class Pipeline
         return $count > 1 ? $this->pipes[$count - 2] : null;
     }
 
+    /**
+     * @return $this
+     */
     public function flow()
     {
-        $this->assemble()->call();
+        $this->assemble()->resolve();
 
         return $this;
     }
 
-    protected function call()
+    /**
+     * @return $this
+     */
+    protected function resolve()
     {
-        foreach ($this->pipes as $pipe) {
-            $pipe->call($this->request);
+        foreach ($this->ancestors() as $pipe) {
+            $pipe->resolveResource();
         }
+
+        $this->current()->call($this->request, );
+
+        $pipe = $this->current();
+        $pipe->getResource()->{$pipe->mehod()}($pipe->arguments());
+
+        return $this;
     }
 }

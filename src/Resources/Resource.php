@@ -3,6 +3,9 @@
 namespace Api\Resources;
 
 use Api\Api;
+use Api\Pipeline\Pipeline;
+use Api\Pipeline\Scope;
+use Api\Requests\Request;
 use Api\Resources\Relations\Collection as Relations;
 use Api\Resources\Relations\HasMany;
 use Api\Resources\Relations\Relation;
@@ -135,12 +138,31 @@ class Resource
     }
 
     /**
-     * @param $request
-     * @param $pipeline
+     * @param Request $request
+     * @param Pipeline $pipeline
      * @return mixed
      */
-    public function get($request, $pipeline)
+    public function getCollection(Request $request, Pipeline $pipeline)
     {
-        return Api::getRepresentation()->forCollection($request, $this->repository->get($request, $pipeline));
+        return Api::getRepresentation()->forCollection($request, $this->repository->getCollection($request, $pipeline));
+    }
+
+    /**
+     * @param Scope $scope
+     * @param Request $request
+     * @param Pipeline $pipeline
+     * @return mixed
+     */
+    public function getScopedCollection(Scope $scope, Request $request, Pipeline $pipeline)
+    {
+        return Api::getRepresentation()->forCollection($request, $this->repository->getScopedCollection($scope, $request, $pipeline));
+    }
+
+    public function getRecord($key, Request $request, Pipeline $pipeline)
+    {
+    }
+
+    public function getScopedRecord($key, Scope $scope, Request $request, Pipeline $pipeline)
+    {
     }
 }
