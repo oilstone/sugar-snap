@@ -2,20 +2,27 @@
 
 namespace Api\Pipeline;
 
+use Api\Resources\Relations\Relation;
+
 class Scope
 {
-    public function __construct(Pipe $pipe, $ancestor)
-    {
+    protected $ancestor;
 
+    protected $relation;
+
+    public function __construct(Pipe $ancestor, Relation $relation)
+    {
+        $this->ancestor = $ancestor;
+        $this->relation = $relation;
     }
 
-    public function query()
+    public function getKey()
     {
-        return $this->relation->applyScope($this->ancestor);
+        return $this->relation->getForeignKey();
     }
 
-    public function get()
+    public function getValue()
     {
-
+        return $this->ancestor->getData()[$this->getKey()] ?? null;
     }
 }

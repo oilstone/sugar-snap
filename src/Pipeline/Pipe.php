@@ -2,6 +2,10 @@
 
 namespace Api\Pipeline;
 
+use Api\Resources\Singleton;
+use Api\Resources\Collectable;
+use Api\Resources\Relations\Relation;
+
 class Pipe
 {
     protected $entity;
@@ -13,6 +17,8 @@ class Pipe
     protected $arguments = [];
 
     protected $scope;
+
+    protected $data = [];
 
     public function setEntity($entity)
     {
@@ -31,13 +37,27 @@ class Pipe
         return ($this->entity !== null);
     }
 
+    public function getResource()
+    {
+        return $this->entity instanceof Relation ? $this->entity->getForeignResource() : $this->entity;
+    }
+
+    public function isSingleton()
+    {
+        return ($this->getResource() instanceof Singleton);
+    }
+
+    public function isCollectable()
+    {
+        return ($this->getResource() instanceof Collectable);
+    }
+
     public function setKey($key)
     {
         $this->key = $key;
 
         return $this;
     }
-
 
     public function setMethod(string $method)
     {
@@ -51,18 +71,20 @@ class Pipe
         $this->arguments = $argument;
     }
 
-    public function setScope($pipe)
+    public function scope($pipe)
     {
-        $this->scope = new Scope($pipe, $this);
+        $this->scope = new Scope($pipe, $this->entity);
 
         return $this;
     }
 
+    public function getData()
+    {
+        return $this->data;
+    }
+
     public function call()
     {
-
-
-
         $this->entity->{$this->method}(...$this->arguments);
 
         return $this;

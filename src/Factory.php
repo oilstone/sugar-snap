@@ -3,7 +3,7 @@
 namespace Api;
 
 use Api\Repositories\Stitch\Repository as StitchRepository;
-use Api\Resources\Collection;
+use Api\Resources\Collectable;
 use Closure;
 use Stitch\Stitch;
 
@@ -15,17 +15,17 @@ class Factory
 {
     /**
      * @param $value
-     * @return Collection
+     * @return Collectable
      */
-    public static function collection($value)
+    public static function collectable($value)
     {
         if ($value instanceof Closure) {
-            return new Collection(
+            return new Collectable(
                 new StitchRepository(Stitch::make($value))
             );
         }
 
-        return new Collection($value);
+        return new Collectable($value);
     }
 
     /**

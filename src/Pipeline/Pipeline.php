@@ -4,7 +4,6 @@ namespace Api\Pipeline;
 
 use Api\Registry;
 use Api\Requests\Request;
-use Api\Resources\Singleton;
 
 /**
  * Class Pipeline
@@ -16,6 +15,8 @@ class Pipeline
      * @var array
      */
     protected $pipes = [];
+
+    protected $request;
 
     public function __construct(Request $request)
     {
@@ -31,31 +32,28 @@ class Pipeline
     }
 
     /**
-     * @param Request $request
      * @return $this
      */
     protected function assemble()
     {
         $pipe = $this->makePipe();
-        $pieces = $this->request->segments();
 
-        while ($pieces) {
-            $piece = array_shift($pieces);
-
+        foreach ($this->request->segments() as $piece) {
             if ($pipe->hasEntity()) {
-                $resource = $pipe->getEntity();
                 $pipe = $this->makePipe();
 
-                if (!$resource instanceof Singleton) {
+                if ($pipe->isCollectable()) {
                     $pipe->setKey($piece);
 
                     continue;
                 }
             }
 
-            $pipe->setEntity(
-                count($this->pipes) > 1 ? $this->previous()->getRelation($piece) : Registry::get($piece)
-            );
+            if ($previous = $this->previous()) {
+                $pipe->setEntity($previous->getRelation($piece))->scope($previous);
+            } else {
+                $pipe->setEntity(Registry::get($piece));
+            }
         }
 
         return $this;
@@ -89,17 +87,27 @@ class Pipeline
         return $count ? $this->pipes[$count - 1] : null;
     }
 
+    /**
+     * @return mixed|null
+     */
+    public function previous()
+    {
+        $count = count($this->pipes);
+
+        return $count > 1 ? $this->pipes[$count - 2] : null;
+    }
+
     public function flow()
     {
-        return $this->assemble()->call();
+        $this->assemble()->call();
+
+        return $this;
     }
 
     protected function call()
     {
         foreach ($this->pipes as $pipe) {
-            $pipe->call();
+            $pipe->call($this->request);
         }
-
-        return $this->current();
     }
 }

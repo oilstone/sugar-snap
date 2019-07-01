@@ -32,6 +32,11 @@ class Relation
     protected $binding;
 
     /**
+     * @var string|null
+     */
+    protected $foreignKey;
+
+    /**
      * Relation constructor.
      * @param Resource $localResource
      */
@@ -113,5 +118,47 @@ class Relation
     public function getBinding()
     {
         return $this->binding;
+    }
+
+    /**
+     * @param string $name
+     * @return $this
+     */
+    public function foreignKey(string $name)
+    {
+        $this->foreignKey = $name;
+
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    public function pullKeys()
+    {
+        $localTable = $this->localModel->getTable();
+
+        $this->foreignKey = $this->getForeignModel()->getTable()->getForeignKeyFor(
+            $localTable->getName(),
+            $localTable->getPrimaryKey()->getName()
+        );
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getForeignKey()
+    {
+        return $this->foreignKey;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasKeys()
+    {
+        return $this->foreignKey !== null;
     }
 }
