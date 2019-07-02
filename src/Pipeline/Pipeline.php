@@ -32,7 +32,7 @@ class Pipeline
      */
     protected function makePipe()
     {
-        $pipe = new Pipe($this->request);
+        $pipe = new Pipe($this, $this->request);
         $this->pipes[] = $pipe;
 
         return $pipe;
@@ -56,8 +56,8 @@ class Pipeline
 
             $pipe = $this->makePipe();
 
-            if ($previous = $this->previous()) {
-                $pipe->setEntity($previous->getResource()->getRelation($piece))->scope($previous);
+            if ($penultimate = $this->penultimate()) {
+                $pipe->setEntity($penultimate->getResource()->getRelation($piece))->scope($penultimate);
             } else {
                 $pipe->setEntity(Registry::get($piece));
             }
@@ -87,7 +87,7 @@ class Pipeline
     /**
      * @return mixed|null
      */
-    public function current()
+    public function last()
     {
         return $this->pipes[count($this->pipes) - 1] ?? null;
     }
@@ -95,9 +95,27 @@ class Pipeline
     /**
      * @return mixed|null
      */
-    public function previous()
+    public function penultimate()
     {
         return $this->pipes[count($this->pipes) - 2] ?? null;
+    }
+
+    /**
+     * @param Pipe $pipe
+     * @return array
+     */
+    public function before(Pipe $pipe)
+    {
+        return array_slice($this->pipes, 0, array_search($pipe, $this->pipes));
+    }
+
+    /**
+     * @param Pipe $pipe
+     * @return array
+     */
+    public function after(Pipe $pipe)
+    {
+        return array_slice($this->pipes, array_search($pipe, $this->pipes) + 1);
     }
 
     /**
@@ -116,7 +134,7 @@ class Pipeline
     protected function call()
     {
         foreach ($this->pipes as $pipe) {
-            $pipe->call($this);
+            $pipe->call();
         }
 
         return $this;

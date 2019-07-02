@@ -2,6 +2,7 @@
 
 namespace Api\Repositories\Stitch;
 
+use Api\Pipeline\Pipe;
 use Api\Pipeline\Pipeline;
 use Api\Pipeline\Scope;
 use Api\Requests\Relation as RequestRelation;
@@ -52,45 +53,19 @@ class Repository
     }
 
     /**
-     * @param $key
-     * @param Scope $scope
-     * @return mixed
-     */
-    public function getScopedByKey($key, Scope $scope)
-    {
-        return $this->applyScope(
-            $this->applyKey($this->model->query(), $key),
-            $scope
-        )->get()[0]
-            ->toArray();
-    }
-
-    /**
+     * @param Pipe $pipe
      * @param Request $request
-     * @param Pipeline $pipeline
      * @return array
      */
-    public function getCollection(Request $request, Pipeline $pipeline)
+    public function getCollection(Pipe $pipe, Request $request)
     {
         $query = $this->model->query();
 
-        $this->addRelations($pipeline->current()->getResource(), $query, $request->relations());
-        $this->applyRsqlExpression($query, $request->filters());
+        if ($pipe->scoped()) {
+            $this->applyScope($query, $pipe->getScope());
+        }
 
-        return $query->get()->toArray();
-    }
-
-    /**
-     * @param Scope $scope
-     * @param Request $request
-     * @param Pipeline $pipeline
-     * @return array
-     */
-    public function getScopedCollection(Scope $scope, Request $request, Pipeline $pipeline)
-    {
-        $query = $this->applyScope($this->model->query(), $scope);
-
-        $this->addRelations($pipeline->current()->getResource(), $query, $request->relations());
+        $this->addRelations($pipe->getResource(), $query, $request->relations());
         $this->applyRsqlExpression($query, $request->filters());
 
         return $query->get()->toArray();

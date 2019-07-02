@@ -6,10 +6,13 @@ use Api\Requests\Request;
 use Api\Resources\Singleton;
 use Api\Resources\Collectable;
 use Api\Resources\Relations\Relation;
+use Api\Resources\Resource;
 
 class Pipe
 {
     protected $request;
+
+    protected $pipeline;
 
     protected $entity;
 
@@ -25,10 +28,12 @@ class Pipe
 
     /**
      * Pipe constructor.
+     * @param Pipeline $pipeline
      * @param Request $request
      */
-    public function __construct(Request $request)
+    public function __construct(Pipeline $pipeline, Request $request)
     {
+        $this->pipeline = $pipeline;
         $this->request = $request;
     }
 
@@ -114,30 +119,51 @@ class Pipe
     }
 
     /**
-     * @param $pipeline
      * @return $this
      */
-    public function call($pipeline)
+    public function call()
     {
-        $this->data = $this->getResource()->{$this->resolveMethod($pipeline)}(...$this->resolveArguments($pipeline));
+        $this->data = $this->getResource()->{$this->resolveMethod()}(...$this->resolveArguments());
 
         return $this;
     }
 
     /**
-     * @param Pipeline $pipeline
      * @return array
      */
-    protected function resolveArguments(Pipeline $pipeline)
+    public function ancestors()
     {
-        return array_filter([$this->key, $this->scope, $this->request, $pipeline]);
+        return $this->pipeline->before($this);
     }
 
     /**
-     * @param Pipeline $pipeline
+     * @return array
+     */
+    public function descendants()
+    {
+        return $this->pipeline->after($this);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isLast()
+    {
+        return ($this->pipeline->last() === $this);
+    }
+
+    /**
+     * @return array
+     */
+    protected function resolveArguments()
+    {
+        return [$this, $this->request];
+    }
+
+    /**
      * @return string
      */
-    protected function resolveMethod(Pipeline $pipeline)
+    protected function resolveMethod()
     {
         switch ($this->request->method()) {
             case 'POST':
@@ -147,11 +173,11 @@ class Pipe
             case 'DELETE';
                 return 'destroy';
             default:
-                if ($pipeline->current() === $this) {
-                    return implode('', ['get', $this->scope ? 'Scoped' : '', $this->key ? 'Record' : 'Collection']);
+                if ($this->isLast()) {
+                    return 'get' . ($this->key ? 'Record' : 'Collection');
                 }
 
-                return implode('', ['get', $this->scope ? 'Scoped' : '', 'ByKey']);
+                return 'getByKey';
         }
     }
 }
