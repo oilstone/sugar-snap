@@ -114,9 +114,7 @@ class Resource
                     $relation->bind($name);
                 }
 
-                $relation->boot();
-
-                return $relation;
+                return $relation->boot();
             }
         );
 

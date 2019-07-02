@@ -8,7 +8,9 @@ use Api\Requests\Relation as RequestRelation;
 use Api\Requests\Request;
 use Api\Resources\Relations\Relation as ResourceRelation;
 use Api\Resources\Resource;
+use Oilstone\RsqlParser\Expression;
 use Stitch\Model;
+use Stitch\Queries\Query;
 
 /**
  * Class Repository
@@ -44,8 +46,7 @@ class Repository
      */
     public function getByKey($key)
     {
-        return $this->model->query()
-            ->where('id', $key)
+        return $this->applyKey($this->model->query(), $key)
             ->get()[0]
             ->toArray();
     }
@@ -57,10 +58,10 @@ class Repository
      */
     public function getScopedByKey($key, Scope $scope)
     {
-        return $this->model->query()
-            ->where('id', $key)
-            ->where($scope->getKey(), $scope->getValue())
-            ->get()[0]
+        return $this->applyScope(
+            $this->applyKey($this->model->query(), $key),
+            $scope
+        )->get()[0]
             ->toArray();
     }
 
@@ -73,6 +74,7 @@ class Repository
     {
         $query = $this->model->query();
 
+        $this->applyRsqlExpression($query, $request->filters());
         $this->addRelations($pipeline->current()->getResource(), $query, $request->relations());
 
         return $query->get()->toArray();
@@ -86,8 +88,7 @@ class Repository
      */
     public function getScopedCollection(Scope $scope, Request $request, Pipeline $pipeline)
     {
-        $query = $this->model->query()
-            ->where($scope->getKey(), $scope->getValue());
+        $query = $this->applyScope($this->model->query(), $scope);
 
         $this->addRelations($pipeline->current()->getResource(), $query, $request->relations());
 
@@ -102,8 +103,7 @@ class Repository
      */
     public function getRecord($key, Request $request, Pipeline $pipeline)
     {
-        $query = $this->model->query()
-            ->where('id', $key);
+        $query =  $this->applyKey($this->model->query(), $key);
 
         $this->addRelations($pipeline->current()->getResource(), $query, $request->relations());
 
@@ -119,9 +119,10 @@ class Repository
      */
     public function getScopedRecord($key, Scope $scope, Request $request, Pipeline $pipeline)
     {
-        $query = $this->model->query()
-            ->where('id', $key)
-            ->where($scope->getKey(), $scope->getValue());
+        $query = $this->applyScope(
+            $this->applyKey($this->model->query(), $key),
+            $scope
+        );
 
         $this->addRelations($pipeline->current()->getResource(), $query, $request->relations());
 
@@ -129,11 +130,52 @@ class Repository
     }
 
     /**
-     * @param Resource $resource
+     * @param Query $query
+     * @param Scope $scope
+     * @return Query
+     */
+    protected function applyScope(Query $query, Scope $scope)
+    {
+        return $query->where($scope->getKey(), $scope->getValue());
+    }
+
+    /**
+     * @param Query $query
+     * @param $key
+     * @return Query
+     */
+    protected function applyKey(Query $query, $key)
+    {
+        return $query->where($this->model->getTable()->getPrimaryKey()->getName(), $key);
+    }
+
+    /**
      * @param $query
+     * @param Expression $expression
+     */
+    function applyRsqlExpression($query, Expression $expression)
+    {
+        foreach ($expression as $item) {
+            $method = $item['operator'] == 'OR' ? 'orWhere' : 'where';
+            $constraint = $item['constraint'];
+
+            if ($constraint instanceof Expression) {
+                $query->{$method}(function ($query) use ($constraint)
+                {
+                    $this->applyRsqlExpression($query, $constraint);
+                });
+            } else {
+                $query->{$method}($constraint->getColumn(), $constraint->getOperator()->toSql(), $constraint->getValue());
+            }
+        }
+    }
+
+    /**
+     * @param Resource $resource
+     * @param Query $query
      * @param array $relations
      */
-    protected function addRelations(Resource $resource, $query, array $relations)
+    protected function addRelations(Resource $resource, Query $query, array $relations)
     {
         foreach ($relations as $requestRelation) {
             $name = $requestRelation->getName();
