@@ -89,9 +89,7 @@ class Pipeline
      */
     public function current()
     {
-        $count = count($this->pipes);
-
-        return $count ? $this->pipes[$count - 1] : null;
+        return $this->pipes[count($this->pipes) - 1] ?? null;
     }
 
     /**
@@ -99,9 +97,7 @@ class Pipeline
      */
     public function previous()
     {
-        $count = count($this->pipes);
-
-        return $count > 1 ? $this->pipes[$count - 2] : null;
+        return $this->pipes[count($this->pipes) - 2] ?? null;
     }
 
     /**
