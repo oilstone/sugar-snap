@@ -29,10 +29,9 @@ class Factory
     }
 
     /**
-     * @param string $name
-     * @param Closure $callback
+     * @param $value
      */
-    public static function singleton(string $name, Closure $callback)
+    public static function singleton($value)
     {
         echo 'make singleton';
     }

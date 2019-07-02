@@ -74,8 +74,8 @@ class Repository
     {
         $query = $this->model->query();
 
-        $this->applyRsqlExpression($query, $request->filters());
         $this->addRelations($pipeline->current()->getResource(), $query, $request->relations());
+        $this->applyRsqlExpression($query, $request->filters());
 
         return $query->get()->toArray();
     }
@@ -91,6 +91,7 @@ class Repository
         $query = $this->applyScope($this->model->query(), $scope);
 
         $this->addRelations($pipeline->current()->getResource(), $query, $request->relations());
+        $this->applyRsqlExpression($query, $request->filters());
 
         return $query->get()->toArray();
     }
