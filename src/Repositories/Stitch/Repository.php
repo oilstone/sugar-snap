@@ -71,11 +71,9 @@ class Repository
      */
     public function getCollection(Request $request, Pipeline $pipeline)
     {
-        $query = $this->model->query()
-            ->get()
-            ->toArray();
+        $query = $this->model->query();
 
-        $this->addRelations($pipeline->current(), $query, $request->relations());
+        $this->addRelations($pipeline->current()->getResource(), $query, $request->relations());
 
         return $query->get()->toArray();
     }
@@ -89,11 +87,9 @@ class Repository
     public function getScopedCollection(Scope $scope, Request $request, Pipeline $pipeline)
     {
         $query = $this->model->query()
-            ->where($scope->getKey(), $scope->getValue())
-            ->get()
-            ->toArray();
+            ->where($scope->getKey(), $scope->getValue());
 
-        $this->addRelations($pipeline->current(), $query, $request->relations());
+        $this->addRelations($pipeline->current()->getResource(), $query, $request->relations());
 
         return $query->get()->toArray();
     }
@@ -107,13 +103,11 @@ class Repository
     public function getRecord($key, Request $request, Pipeline $pipeline)
     {
         $query = $this->model->query()
-            ->where('id', $key)
-            ->get()[0]
-            ->toArray();
+            ->where('id', $key);
 
-        $this->addRelations($pipeline->current(), $query, $request->relations());
+        $this->addRelations($pipeline->current()->getResource(), $query, $request->relations());
 
-        return $query->get()->toArray();
+        return $query->get()[0]->toArray();
     }
 
     /**
@@ -127,13 +121,11 @@ class Repository
     {
         $query = $this->model->query()
             ->where('id', $key)
-            ->where($scope->getKey(), $scope->getValue())
-            ->get()[0]
-            ->toArray();
+            ->where($scope->getKey(), $scope->getValue());
 
-        $this->addRelations($pipeline->current(), $query, $request->relations());
+        $this->addRelations($pipeline->current()->getResource(), $query, $request->relations());
 
-        return $query->get()->toArray();
+        return $query->get()[0]->toArray();
     }
 
     /**

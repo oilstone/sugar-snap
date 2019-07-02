@@ -4,6 +4,7 @@ namespace Api\Resources\Relations;
 
 use Api\Registry;
 use Api\Resources\Resource;
+use Exception;
 
 /**
  * Class Relation
@@ -35,6 +36,11 @@ class Relation
      * @var string|null
      */
     protected $foreignKey;
+
+    /**
+     * @var string|null
+     */
+    protected $localKey;
 
     /**
      * Relation constructor.
@@ -132,21 +138,6 @@ class Relation
     }
 
     /**
-     * @return $this
-     */
-    public function pullKeys()
-    {
-        $localTable = $this->localModel->getTable();
-
-        $this->foreignKey = $this->getForeignModel()->getTable()->getForeignKeyFor(
-            $localTable->getName(),
-            $localTable->getPrimaryKey()->getName()
-        );
-
-        return $this;
-    }
-
-    /**
      * @return mixed
      */
     public function getForeignKey()
@@ -155,10 +146,46 @@ class Relation
     }
 
     /**
+     * @param string $name
+     * @return $this
+     */
+    public function localKey(string $name)
+    {
+        $this->localKey = $name;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getLocalKey()
+    {
+        return $this->localKey;
+    }
+
+    /**
      * @return bool
      */
     public function hasKeys()
     {
-        return $this->foreignKey !== null;
+        return ($this->foreignKey && $this->foreignKey);
+    }
+
+    /**
+     * @return $this
+     * @throws Exception
+     */
+    public function boot()
+    {
+        if (!$this->hasKeys()) {
+            if (method_exists($this, 'pullKeys')) {
+                $this->pullKeys();
+
+                return $this;
+            }
+        }
+
+        return $this;
     }
 }

@@ -32,7 +32,7 @@ class Pipeline
      */
     protected function makePipe()
     {
-        $pipe = new Pipe();
+        $pipe = new Pipe($this->request);
         $this->pipes[] = $pipe;
 
         return $pipe;
@@ -43,19 +43,18 @@ class Pipeline
      */
     protected function assemble()
     {
-        $pipe = $this->makePipe();
+        $pipe = null;
 
         foreach ($this->request->segments() as $piece) {
-            if ($pipe->hasEntity()) {
+            if ($pipe && !$pipe->hasKey()) {
                 if ($pipe->isCollectable()) {
                     $pipe->setKey($piece);
-                    $pipe = $this->makePipe();
 
                     continue;
                 }
-
-                $pipe = $this->makePipe();
             }
+
+            $pipe = $this->makePipe();
 
             if ($previous = $this->previous()) {
                 $pipe->setEntity($previous->getResource()->getRelation($piece))->scope($previous);
@@ -110,7 +109,7 @@ class Pipeline
      */
     public function flow()
     {
-        $this->assemble()->resolve();
+        $this->assemble()->call();
 
         return $this;
     }
@@ -118,17 +117,11 @@ class Pipeline
     /**
      * @return $this
      */
-    protected function resolve()
+    protected function call()
     {
-//        foreach ($this->ancestors() as $pipe) {
-//            $pipe->prepare();
-//        }
-
-        //$this->current()->call($this->request, );
-
-        $pipe = $this->current();
-        $pipe->setHttpMethod($this->request->method())->prepare();
-        $pipe->getResource()->{$pipe->method()}(array_merge($pipe->arguments(), [$this->request, $this]));
+        foreach ($this->pipes as $pipe) {
+            $pipe->call($this);
+        }
 
         return $this;
     }

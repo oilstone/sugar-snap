@@ -2,12 +2,15 @@
 
 namespace Api\Pipeline;
 
+use Api\Requests\Request;
 use Api\Resources\Singleton;
 use Api\Resources\Collectable;
 use Api\Resources\Relations\Relation;
 
 class Pipe
 {
+    protected $request;
+
     protected $entity;
 
     protected $key;
@@ -19,6 +22,15 @@ class Pipe
     protected $scope;
 
     protected $data = [];
+
+    /**
+     * Pipe constructor.
+     * @param Request $request
+     */
+    public function __construct(Request $request)
+    {
+        $this->request = $request;
+    }
 
     /**
      * @param $entity
@@ -37,14 +49,6 @@ class Pipe
     public function getEntity()
     {
         return $this->entity;
-    }
-
-    /**
-     * @return bool
-     */
-    public function hasEntity()
-    {
-        return ($this->entity !== null);
     }
 
     /**
@@ -83,6 +87,14 @@ class Pipe
     }
 
     /**
+     * @return bool
+     */
+    public function hasKey()
+    {
+        return ($this->key !== null);
+    }
+
+    /**
      * @return array
      */
     public function getData()
@@ -102,68 +114,44 @@ class Pipe
     }
 
     /**
+     * @param $pipeline
      * @return $this
      */
-    public function prepare()
+    public function call($pipeline)
     {
-        if ($this->scope) {
-            $this->scope->prepare();
-        }
-
-        $this->data = $this->getResource()->find($this->key);
+        $this->data = $this->getResource()->{$this->resolveMethod($pipeline)}(...$this->resolveArguments($pipeline));
 
         return $this;
     }
 
     /**
-     * @param $request
-     * @param $pipeline
-     * @return $this
+     * @param Pipeline $pipeline
+     * @return array
      */
-    public function call($request, $pipeline)
+    protected function resolveArguments(Pipeline $pipeline)
     {
-        if ($this->scope) {
-            $this->scope->
-        }
-
-        switch ($request->method()) {
-            case 'POST':
-                $method = 'create';
-                $arguments = [];
-                break;
-            case 'PUT';
-                $method = 'update';
-                $arguments = [];
-                break;
-            case 'DELETE';
-                $method = 'destroy';
-                $arguments = [];
-                break;
-            default:
-                $method = implode('', ['get', $this->scope ? 'Scoped' : '', $this->key ? 'Item' : 'Collection']);
-                $arguments = array_filter([$this->key, $this->scope, $request, $pipeline]);
-        }
-
-        $this->entity->{$method}(...$arguments);
-
-        return $this;
+        return array_filter([$this->key, $this->scope, $this->request, $pipeline]);
     }
 
-    public function method()
+    /**
+     * @param Pipeline $pipeline
+     * @return string
+     */
+    protected function resolveMethod(Pipeline $pipeline)
     {
-        switch ($request->method()) {
+        switch ($this->request->method()) {
             case 'POST':
-                $method = 'create';
-                break;
+                return 'create';
             case 'PUT';
-                $method = 'update';
-                break;
+                return 'update';
             case 'DELETE';
-                $method = 'destroy';
-                break;
+                return 'destroy';
             default:
-                $method = implode('', ['get', $this->scope ? 'Scoped' : '', $this->key ? 'Item' : 'Collection']);
-                $arguments = array_filter([$this->key, $this->scope, $request, $pipeline]);
+                if ($pipeline->current() === $this) {
+                    return implode('', ['get', $this->scope ? 'Scoped' : '', $this->key ? 'Record' : 'Collection']);
+                }
+
+                return implode('', ['get', $this->scope ? 'Scoped' : '', 'ByKey']);
         }
     }
 }

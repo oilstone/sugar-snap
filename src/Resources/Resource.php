@@ -81,6 +81,17 @@ class Resource
     }
 
     /**
+     * @param mixed ...$arguments
+     * @return $this
+     */
+    public function nest(...$arguments)
+    {
+        $this->addRelation(array_merge([Relation::class], $arguments));
+
+        return $this;
+    }
+
+    /**
      * @param $arguments
      * @return $this
      */
@@ -97,24 +108,17 @@ class Resource
 
                 if (count($arguments) && $arguments[0] instanceof Closure) {
                     $arguments[0]($relation);
-                } else {
+                }
+
+                if (!$relation->getBinding()) {
                     $relation->bind($name);
                 }
+
+                $relation->boot();
 
                 return $relation;
             }
         );
-
-        return $this;
-    }
-
-    /**
-     * @param mixed ...$arguments
-     * @return $this
-     */
-    public function nest(...$arguments)
-    {
-        $this->addRelation(array_merge([Relation::class], $arguments));
 
         return $this;
     }
@@ -132,9 +136,18 @@ class Resource
      * @param int $id
      * @return mixed
      */
-    public function find(int $id)
+    public function getByKey(int $id)
     {
-        return $this->repository->find($id);
+        return $this->repository->getByKey($id);
+    }
+
+    /**
+     * @param int $id
+     * @return mixed
+     */
+    public function getScopedByKey(int $id, Scope $scope)
+    {
+        return $this->repository->getScopedByKey($id, $scope);
     }
 
     /**
@@ -158,11 +171,26 @@ class Resource
         return Api::getRepresentation()->forCollection($request, $this->repository->getScopedCollection($scope, $request, $pipeline));
     }
 
+    /**
+     * @param $key
+     * @param Request $request
+     * @param Pipeline $pipeline
+     * @return mixed
+     */
     public function getRecord($key, Request $request, Pipeline $pipeline)
     {
+        return Api::getRepresentation()->forSingleton($request, $this->repository->getRecord($key, $request, $pipeline));
     }
 
+    /**
+     * @param $key
+     * @param Scope $scope
+     * @param Request $request
+     * @param Pipeline $pipeline
+     * @return mixed
+     */
     public function getScopedRecord($key, Scope $scope, Request $request, Pipeline $pipeline)
     {
+        return Api::getRepresentation()->forSingleton($request, $this->repository->getScopedRecord($key, $scope, $request, $pipeline));
     }
 }

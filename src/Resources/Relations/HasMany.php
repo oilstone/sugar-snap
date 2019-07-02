@@ -2,6 +2,7 @@
 
 namespace Api\Resources\Relations;
 
+use Stitch\Model;
 use Stitch\Relations\Has;
 
 /**
@@ -10,11 +11,17 @@ use Stitch\Relations\Has;
  */
 class HasMany extends Relation
 {
+    /**
+     * @return Model
+     */
     protected function getLocalModel()
     {
         return $this->getLocalResource()->getRepository()->getModel();
     }
 
+    /**
+     * @return Model
+     */
     protected function getForeignModel()
     {
         return $this->getForeignResource()->getRepository()->getmodel();
@@ -30,12 +37,21 @@ class HasMany extends Relation
         return $relation->boot()->query();
     }
 
-    public function applyScope($ancestor)
+    /**
+     * @return $this
+     */
+    public function pullKeys()
     {
-        $data = $ancestor->getData();
-        $localModel = $this->getLocalModel();
-        $primaryKey = $localModel->getTable()->getPtmaryKey()->getName();
+        $localTable = $this->getLocalModel()->getTable();
 
-        return $this->getForeignModel()->query()->where($primaryKey, $data[$primaryKey]);
+        $key = $this->getForeignModel()->getTable()->getForeignKeyFor(
+            $localTable->getName(),
+            $localTable->getPrimaryKey()->getName()
+        );
+
+        $this->foreignKey = $key->getLocalColumn()->getName();
+        $this->localKey = $key->getReferenceColumnName();
+
+        return $this;
     }
 }
