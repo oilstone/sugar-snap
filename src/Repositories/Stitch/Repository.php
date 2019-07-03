@@ -3,8 +3,6 @@
 namespace Api\Repositories\Stitch;
 
 use Api\Pipeline\Pipe;
-use Api\Pipeline\Pipeline;
-use Api\Pipeline\Scope;
 use Api\Requests\Relation as RequestRelation;
 use Api\Requests\Request;
 use Api\Resources\Relations\Relation as ResourceRelation;
@@ -42,14 +40,12 @@ class Repository
     }
 
     /**
-     * @param $key
+     * @param Pipe $pipe
      * @return mixed
      */
-    public function getByKey($key)
+    public function getByKey(Pipe $pipe)
     {
-        return $this->applyKey($this->model->query(), $key)
-            ->get()[0]
-            ->toArray();
+        return $this->keyedQuery($pipe)->get()[0]->toArray();
     }
 
     /**
@@ -59,12 +55,7 @@ class Repository
      */
     public function getCollection(Pipe $pipe, Request $request)
     {
-        $query = $this->model->query();
-
-        if ($pipe->scoped()) {
-            $this->applyScope($query, $pipe->getScope());
-        }
-
+        $query = $this->scopedQuery($pipe);
         $this->addRelations($pipe->getResource(), $query, $request->relations());
         $this->applyRsqlExpression($query, $request->filters());
 
@@ -72,57 +63,69 @@ class Repository
     }
 
     /**
-     * @param $key
+     * @param Pipe $pipe
      * @param Request $request
-     * @param Pipeline $pipeline
-     * @return mixed
+     * @return array
      */
-    public function getRecord($key, Request $request, Pipeline $pipeline)
+    public function getRecord(Pipe $pipe, Request $request)
     {
-        $query =  $this->applyKey($this->model->query(), $key);
-
-        $this->addRelations($pipeline->current()->getResource(), $query, $request->relations());
+        $query =  $this->keyedQuery($pipe);
+        $this->addRelations($pipe->getResource(), $query, $request->relations());
+        $this->applyRsqlExpression($query, $request->filters());
 
         return $query->get()[0]->toArray();
     }
 
     /**
-     * @param $key
-     * @param Scope $scope
-     * @param Request $request
-     * @param Pipeline $pipeline
-     * @return mixed
+     * @return Query
      */
-    public function getScopedRecord($key, Scope $scope, Request $request, Pipeline $pipeline)
+    protected function query(): Query
     {
-        $query = $this->applyScope(
-            $this->applyKey($this->model->query(), $key),
-            $scope
-        );
+        return $this->model->query();
+    }
 
-        $this->addRelations($pipeline->current()->getResource(), $query, $request->relations());
+    /**
+     * @param Pipe $pipe
+     * @return Query
+     */
+    protected function scopedQuery(Pipe $pipe): Query
+    {
+        return $this->applyScope($this->query(), $pipe);
+    }
 
-        return $query->get()[0]->toArray();
+    /**
+     * @param Pipe $pipe
+     * @return Query
+     */
+    protected function keyedQuery(Pipe $pipe): Query
+    {
+        return $this->applyKey($this->scopedQuery($pipe), $pipe);
     }
 
     /**
      * @param Query $query
-     * @param Scope $scope
+     * @param Pipe $pipe
      * @return Query
      */
-    protected function applyScope(Query $query, Scope $scope)
+    protected function applyScope(Query $query, Pipe $pipe)
     {
-        return $query->where($scope->getKey(), $scope->getValue());
+        if ($pipe->isScoped()) {
+            $scope = $pipe->getScope();
+
+            $query->where($scope->getKey(), $scope->getValue());
+        }
+
+        return $query;
     }
 
     /**
      * @param Query $query
-     * @param $key
+     * @param Pipe $pipe
      * @return Query
      */
-    protected function applyKey(Query $query, $key)
+    protected function applyKey(Query $query, Pipe $pipe)
     {
-        return $query->where($this->model->getTable()->getPrimaryKey()->getName(), $key);
+        return $query->where($this->model->getTable()->getPrimaryKey()->getName(), $pipe->getKey());
     }
 
     /**

@@ -18,10 +18,6 @@ class Pipe
 
     protected $key;
 
-    protected $method;
-
-    protected $arguments = [];
-
     protected $scope;
 
     protected $data = [];
@@ -92,6 +88,14 @@ class Pipe
     }
 
     /**
+     * @return mixed
+     */
+    public function getKey()
+    {
+        return $this->key;
+    }
+
+    /**
      * @return bool
      */
     public function hasKey()
@@ -116,6 +120,22 @@ class Pipe
         $this->scope = new Scope($pipe, $this->entity);
 
         return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isScoped()
+    {
+        return ($this->scope !== null);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getScope()
+    {
+        return $this->scope;
     }
 
     /**
@@ -157,7 +177,13 @@ class Pipe
      */
     protected function resolveArguments()
     {
-        return [$this, $this->request];
+        $arguments = [$this];
+
+        if ($this->isLast()) {
+            $arguments[] = $this->request;
+        }
+
+        return $arguments;
     }
 
     /**
@@ -165,6 +191,10 @@ class Pipe
      */
     protected function resolveMethod()
     {
+        if (!$this->isLast()) {
+            return 'getByKey';
+        }
+
         switch ($this->request->method()) {
             case 'POST':
                 return 'create';
@@ -173,11 +203,7 @@ class Pipe
             case 'DELETE';
                 return 'destroy';
             default:
-                if ($this->isLast()) {
-                    return 'get' . ($this->key ? 'Record' : 'Collection');
-                }
-
-                return 'getByKey';
+                return 'get' . ($this->key ? 'Record' : 'Collection');
         }
     }
 }

@@ -69,16 +69,6 @@ class Pipeline
     /**
      * @return array
      */
-    public function ancestors()
-    {
-        $count = count($this->pipes);
-
-        return $count > 1 ? array_slice($this->pipes, 0, -1) : [];
-    }
-
-    /**
-     * @return array
-     */
     public function all()
     {
         return $this->pipes;

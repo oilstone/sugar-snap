@@ -65,7 +65,7 @@ class Api
      */
     public static function handle($request)
     {
-        return (new Pipeline($request))->flow()->current()->getData();
+        return (new Pipeline($request))->flow()->last()->getData();
     }
 
     /**
