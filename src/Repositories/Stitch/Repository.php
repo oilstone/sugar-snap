@@ -162,7 +162,7 @@ class Repository
 
             $query->addRelation(
                 $name,
-                $relation->getForeignResource()->getRepository()->expand($relation, $requestRelation)
+                $relation->getForeignResource()->getRepository()->include($relation, $requestRelation)
             );
         }
     }
@@ -172,7 +172,7 @@ class Repository
      * @param $requestRelation
      * @return mixed
      */
-    public function expand(ResourceRelation $resourceRelation, RequestRelation $requestRelation)
+    public function include(ResourceRelation $resourceRelation, RequestRelation $requestRelation)
     {
         /** @noinspection PhpUndefinedMethodInspection */
 

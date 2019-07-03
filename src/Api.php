@@ -5,6 +5,7 @@ namespace Api;
 use Api\Pipeline\Pipeline;
 use Api\Representations\Contracts\Representation as RepresentationContract;
 use Api\Representations\Representation;
+use Api\Responses\Json as Response;
 use Closure;
 use Stitch\Stitch;
 
@@ -65,7 +66,9 @@ class Api
      */
     public static function handle($request)
     {
-        return (new Pipeline($request))->flow()->last()->getData();
+        return new Response(
+            (new Pipeline($request))->flow()->last()->getData()
+        );
     }
 
     /**
