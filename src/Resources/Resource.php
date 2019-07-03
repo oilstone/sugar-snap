@@ -11,6 +11,7 @@ use Api\Resources\Relations\Collection as Relations;
 use Api\Resources\Relations\HasMany;
 use Api\Resources\Relations\Relation;
 use Closure;
+use Exception;
 
 /**
  * Class Resource
@@ -33,6 +34,15 @@ class Resource
      */
     protected $relations;
 
+    protected const ENDPOINTS = [];
+
+    protected $config = [
+        'endpoints' => [
+            'except' => [],
+            'only' => []
+        ]
+    ];
+
     /**
      * Resource constructor.
      * @param $repository
@@ -52,6 +62,17 @@ class Resource
     }
 
     /**
+     * @param string $name
+     * @return $this
+     */
+    public function name(string $name)
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    /**
      * @return mixed
      */
     public function getName()
@@ -60,14 +81,46 @@ class Resource
     }
 
     /**
-     * @param string $name
+     * @param mixed ...$arguments
      * @return $this
      */
-    public function setName(string $name)
+    public function except(...$arguments)
     {
-        $this->name = $name;
+        $this->config['endpoints']['except'] = array_merge($this->config['endpoints']['except'], $arguments);
 
         return $this;
+    }
+
+    /**
+     * @param mixed ...$arguments
+     * @return $this
+     */
+    public function only(...$arguments)
+    {
+        $this->config['endpoints']['only'] = array_merge($this->config['endpoints']['only'], $arguments);
+
+        return $this;
+    }
+
+    /**
+     * @param string $name
+     * @return bool
+     */
+    public function endpointEnabled(string $name)
+    {
+        if (!in_array($name, static::ENDPOINTS)) {
+            return false;
+        }
+
+        if (count($this->config['endpoints']['only']) && !in_array($name, $this->config['endpoints']['only'])) {
+            return false;
+        }
+
+        if (in_array($name, $this->config['endpoints']['except'])) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -144,9 +197,14 @@ class Resource
      * @param Pipe $pipe
      * @param Request $request
      * @return mixed
+     * @throws Exception
      */
     public function getCollection(Pipe $pipe, Request $request)
     {
+        if (!$this->endpointEnabled('index')) {
+            throw new Exception("The index endpoint is not available on the $this->name resource");
+        }
+
         return Api::getRepresentation()->forCollection($request, $this->repository->getCollection($pipe, $request));
     }
 
@@ -154,9 +212,14 @@ class Resource
      * @param Pipe $pipe
      * @param Request $request
      * @return mixed
+     * @throws Exception
      */
     public function getRecord(Pipe $pipe, Request $request)
     {
+        if (!$this->endpointEnabled('show')) {
+            throw new Exception("The show endpoint is not available on the $this->name resource");
+        }
+
         return Api::getRepresentation()->forSingleton($request, $this->repository->getRecord($pipe, $request));
     }
 }

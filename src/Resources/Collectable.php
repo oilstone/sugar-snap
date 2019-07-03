@@ -9,5 +9,11 @@ namespace Api\Resources;
  */
 class Collectable extends Resource
 {
-
+    protected const ENDPOINTS = [
+        'index',
+        'show',
+        'create',
+        'update',
+        'destroy'
+    ];
 }

@@ -7,6 +7,7 @@ use Api\Representations\Contracts\Representation as RepresentationContract;
 use Api\Representations\Representation;
 use Api\Responses\Json as Response;
 use Closure;
+use Exception;
 use Stitch\Stitch;
 
 /**
@@ -66,9 +67,13 @@ class Api
      */
     public static function handle($request)
     {
-        return new Response(
-            (new Pipeline($request))->flow()->last()->getData()
-        );
+        try {
+            return new Response(
+                (new Pipeline($request))->flow()->last()->getData()
+            );
+        } catch (Exception $e) {
+            return new Response($e->getMessage());
+        }
     }
 
     /**
