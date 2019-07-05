@@ -32,15 +32,11 @@ class Api
     protected static $representation;
 
     /**
-     * @param string $host
-     * @param string $database
-     * @param string $username
-     * @param string $password
+     * @param Closure $callback
      */
-    public static function connect(string $host, string $database, string $username, string $password)
+    public static function addConnection(Closure $callback)
     {
-        Stitch::setDatabaseHost($host);
-        Stitch::connect($database, $username, $password);
+        Stitch::addConnection($callback);
     }
 
     /**

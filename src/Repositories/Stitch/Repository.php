@@ -45,7 +45,7 @@ class Repository
      */
     public function getByKey(Pipe $pipe)
     {
-        return $this->keyedQuery($pipe)->get()[0]->toArray();
+        return $this->keyedQuery($pipe)->getResultSet()[0]->toArray();
     }
 
     /**
@@ -59,7 +59,7 @@ class Repository
         $this->addRelations($pipe->getResource(), $query, $request->relations());
         $this->applyRsqlExpression($query, $request->filters());
 
-        return $query->get()->toArray();
+        return $query->getResultSet()->toArray();
     }
 
     /**
@@ -73,7 +73,7 @@ class Repository
         $this->addRelations($pipe->getResource(), $query, $request->relations());
         $this->applyRsqlExpression($query, $request->filters());
 
-        return $query->get()[0]->toArray();
+        return $query->getResultSet()[0]->toArray();
     }
 
     /**
