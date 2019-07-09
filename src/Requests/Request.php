@@ -2,6 +2,7 @@
 
 namespace Api\Requests;
 
+use Psr\Http\Message\ServerRequestInterface;
 use Oilstone\RsqlParser\Expression;
 
 /**
@@ -19,6 +20,13 @@ class Request
         'sort' => 'sort',
         'limit' => 'limit',
     ];
+
+    protected $serverRequest;
+
+    /**
+     * @var Parser
+     */
+    protected $parser;
 
     /**
      * @var
@@ -41,16 +49,22 @@ class Request
     protected $sort;
 
     /**
-     * @var Parser
+     * Request constructor.
+     * @param ServerRequestInterface $serverRequest
+     * @param Parser $parser
      */
-    protected $parser;
+    public function __construct(ServerRequestInterface $serverRequest, Parser $parser)
+    {
+        $this->serverRequest = $serverRequest;
+        $this->parser = $parser;
+    }
 
     /**
-     * Request constructor.
+     * @return ServerRequestInterface
      */
-    public function __construct()
+    public function getServerRequest()
     {
-        $this->parser = new Parser();
+        return $this->serverRequest;
     }
 
     /**
@@ -99,9 +113,7 @@ class Request
     public function segments()
     {
         if ($this->segments === null) {
-            $path = strpos($_SERVER['REQUEST_URI'], '?') !== false ? substr($_SERVER['REQUEST_URI'], 0, stripos($_SERVER['REQUEST_URI'], '?')) : $_SERVER['REQUEST_URI'];
-
-            $this->segments = $this->parser->segments($path);
+            $this->segments = $this->parser->segments($this->serverRequest->getUri()->getPath());
         }
 
         return $this->segments;
@@ -112,7 +124,7 @@ class Request
      */
     public function method()
     {
-        return $_SERVER['REQUEST_METHOD'];
+        return $this->serverRequest->getMethod();
     }
 
     /**
@@ -121,7 +133,9 @@ class Request
     public function relations()
     {
         if ($this->relations === null) {
-            $this->relations = $this->parser->relations($_GET[Request::getRelationsKey()] ?? '');
+            $this->relations = $this->parser->relations(
+                $this->serverRequest->getQueryParams()[Request::getRelationsKey()] ?? ''
+            );
         }
 
         return $this->relations;
@@ -141,7 +155,9 @@ class Request
     public function filters()
     {
         if ($this->filters === null) {
-            $this->filters = $this->parser->filters($_GET[Request::getFiltersKey()] ?? '');
+            $this->filters = $this->parser->filters(
+                $this->serverRequest->getQueryParams()[Request::getFiltersKey()] ?? ''
+            );
         }
 
         return $this->filters;
@@ -161,7 +177,9 @@ class Request
     public function sort()
     {
         if ($this->sort === null) {
-            $this->sort = $this->parser->sort($_GET[Request::getSortKey()] ?? '');
+            $this->sort = $this->parser->sort(
+                $this->serverRequest->getQueryParams()[Request::getSortKey()] ?? ''
+            );
         }
 
         return $this->sort;

@@ -1,0 +1,28 @@
+<?php
+
+namespace Api\Auth\OAuth2\Bridge\League\Entities;
+
+use League\OAuth2\Server\Entities\ClientEntityInterface;
+use League\OAuth2\Server\Entities\Traits\EntityTrait;
+use League\OAuth2\Server\Entities\Traits\ClientTrait;
+use Stitch\Record;
+
+class Client implements ClientEntityInterface
+{
+    use EntityTrait, ClientTrait;
+
+    /**
+     * Client constructor.
+     * @param Record $record
+     */
+    public function __construct(Record $record)
+    {
+        $this->setIdentifier($record->id);
+
+        $this->name = $record->name;
+        $this->redirectUri = $record->redirects->toArray()->map(function ($item)
+        {
+            return $item->uri;
+        });
+    }
+}

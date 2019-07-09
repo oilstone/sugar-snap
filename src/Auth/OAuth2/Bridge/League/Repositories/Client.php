@@ -1,18 +1,17 @@
 <?php
 
-namespace Api\Auth\OAuth2\Repositories;
+namespace Api\Auth\OAuth2\Bridge\League\Repositories;
 
-use Api\Auth\OAuth2\Entities\Client as Entity;
+use Api\Auth\OAuth2\Bridge\League\Entities\Client as Entity;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
 use Stitch\Stitch;
+use Stitch\Model;
 
 
-class Client implements ClientRepositoryInterface
+class Client extends Repository implements ClientRepositoryInterface
 {
     protected $model;
-
-    protected $record;
 
     /**
      * Get a client.
@@ -27,37 +26,32 @@ class Client implements ClientRepositoryInterface
      */
     public function getClientEntity($clientIdentifier, $grantType = null, $clientSecret = null, $mustValidateSecret = true): ClientEntityInterface
     {
-        $query =  $this->getModel()->where('id', $clientIdentifier)->get();
+        $query =  $this->getModel()->with('redirects')->where('id', $clientIdentifier)->get();
 
         if ($clientSecret) {
             $query->where('secret', $clientSecret);
         }
 
-        return new Entity($query->first()());
+        return new Entity($query->first());
     }
 
     /**
-     * @return Client
+     * @return Model
      */
-    protected function getModel()
+    protected function makeModel(): Model
     {
-        return $this->model ? $this->model : $this->makeModel();
-    }
-
-    /**
-     * @return $this
-     */
-    protected function makeModel()
-    {
-        $this->model = Stitch::make(function ($table)
+        return Stitch::make(function ($table)
         {
             $table->name('oauth_clients');
-            $table->integer('id')->primary();
+            $table->string('id')->primary();
             $table->string('name');
             $table->string('secret');
-            $table->string('redirect_uri');
-        });
-
-        return $this;
+        })->hasMany('redirects', Stitch::make(function ($table)
+        {
+            $table->name('oauth_client_redirects');
+            $table->integer('id')->autoIncrement()->primary();
+            $table->string('client_id')->references('id')->on('oauth_clients');
+            $table->string('uri');
+        }));
     }
 }
