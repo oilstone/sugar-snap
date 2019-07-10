@@ -2,7 +2,7 @@
 
 namespace Api\Requests;
 
-use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\ServerRequestInterface as Psr7ServerRequestInterface;
 use Oilstone\RsqlParser\Expression;
 
 /**
@@ -21,7 +21,7 @@ class Request
         'limit' => 'limit',
     ];
 
-    protected $serverRequest;
+    protected $psr7ServerRequest;
 
     /**
      * @var Parser
@@ -50,21 +50,21 @@ class Request
 
     /**
      * Request constructor.
-     * @param ServerRequestInterface $serverRequest
+     * @param Psr7ServerRequestInterface $psr7ServerRequest
      * @param Parser $parser
      */
-    public function __construct(ServerRequestInterface $serverRequest, Parser $parser)
+    public function __construct(Psr7ServerRequestInterface $psr7ServerRequest, Parser $parser)
     {
-        $this->serverRequest = $serverRequest;
+        $this->psr7ServerRequest = $psr7ServerRequest;
         $this->parser = $parser;
     }
 
     /**
-     * @return ServerRequestInterface
+     * @return Psr7ServerRequestInterface
      */
-    public function getServerRequest()
+    public function getPsr7ServerRequest()
     {
-        return $this->serverRequest;
+        return $this->psr7ServerRequest;
     }
 
     /**
@@ -113,7 +113,7 @@ class Request
     public function segments()
     {
         if ($this->segments === null) {
-            $this->segments = $this->parser->segments($this->serverRequest->getUri()->getPath());
+            $this->segments = $this->parser->segments($this->psr7ServerRequest->getUri()->getPath());
         }
 
         return $this->segments;
@@ -124,7 +124,7 @@ class Request
      */
     public function method()
     {
-        return $this->serverRequest->getMethod();
+        return $this->psr7ServerRequest->getMethod();
     }
 
     /**
@@ -134,7 +134,7 @@ class Request
     {
         if ($this->relations === null) {
             $this->relations = $this->parser->relations(
-                $this->serverRequest->getQueryParams()[Request::getRelationsKey()] ?? ''
+                $this->psr7ServerRequest->getQueryParams()[Request::getRelationsKey()] ?? ''
             );
         }
 
@@ -156,7 +156,7 @@ class Request
     {
         if ($this->filters === null) {
             $this->filters = $this->parser->filters(
-                $this->serverRequest->getQueryParams()[Request::getFiltersKey()] ?? ''
+                $this->psr7ServerRequest->getQueryParams()[Request::getFiltersKey()] ?? ''
             );
         }
 
@@ -178,7 +178,7 @@ class Request
     {
         if ($this->sort === null) {
             $this->sort = $this->parser->sort(
-                $this->serverRequest->getQueryParams()[Request::getSortKey()] ?? ''
+                $this->psr7ServerRequest->getQueryParams()[Request::getSortKey()] ?? ''
             );
         }
 

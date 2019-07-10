@@ -32,7 +32,16 @@ class Pipeline
      */
     protected function makePipe()
     {
-        $pipe = new Pipe($this, $this->request);
+        return new Pipe($this, $this->request);
+    }
+
+    /**
+     * @return Pipe
+     */
+    protected function newPipe()
+    {
+        $pipe = $this->makePipe();
+
         $this->pipes[] = $pipe;
 
         return $pipe;
@@ -54,7 +63,7 @@ class Pipeline
                 }
             }
 
-            $pipe = $this->makePipe();
+            $pipe = $this->newPipe();
 
             if ($penultimate = $this->penultimate()) {
                 $pipe->setEntity($penultimate->getResource()->getRelation($piece))->scope($penultimate);

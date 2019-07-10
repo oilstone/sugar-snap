@@ -1,17 +1,25 @@
 <?php
 
-namespace Api\Auth\OAuth2\Bridge\League\Repositories;
+namespace Api\Auth\OAuth2\League\Repositories;
 
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
-use Api\Auth\OAuth2\Bridge\League\Entities\Scope as Entity;
-use Stitch\Stitch;
+use Api\Auth\OAuth2\League\Entities\Scope as Entity;
 use Stitch\Model;
 
 
-class Scope extends Repository implements ScopeRepositoryInterface
+class Scope implements ScopeRepositoryInterface
 {
     protected $model;
+
+    /**
+     * Scope constructor.
+     * @param Model $model
+     */
+    public function __construct(Model $model)
+    {
+        $this->model = $model;
+    }
 
     /**
      * @param string $identifier
@@ -35,26 +43,6 @@ class Scope extends Repository implements ScopeRepositoryInterface
      */
     public function finalizeScopes(array $scopes, $grantType, ClientEntityInterface $clientEntity, $userIdentifier = null)
     {
-
-    }
-
-    /**
-     * @return Model
-     */
-    protected function makeModel(): Model
-    {
-        return Stitch::make(function ($table)
-        {
-            $table->name('oauth_clients');
-            $table->string('id')->primary();
-            $table->string('name');
-            $table->string('secret');
-        })->hasMany('redirects', Stitch::make(function ($table)
-        {
-            $table->name('oauth_client_redirects');
-            $table->integer('id')->autoIncrement()->primary();
-            $table->string('client_id')->references('id')->on('oauth_clients');
-            $table->string('uri');
-        }));
+        return $scopes;
     }
 }

@@ -5,10 +5,12 @@ namespace Api;
 use Api\Pipeline\Pipeline;
 use Api\Representations\Contracts\Representation as RepresentationContract;
 use Api\Representations\Representation;
-use Api\Responses\Json as Response;
+use Api\Requests\Factory as RequestFactory;
+use Api\Responses\Factory as ResponseFactory;
+use Api\Exceptions\Handler as ExceptionHandler;
+use Stitch\Stitch;
 use Closure;
 use Exception;
-use Stitch\Stitch;
 
 /**
  * Class Api
@@ -61,14 +63,29 @@ class Api
      * @param $request
      * @return mixed
      */
-    public static function handle($request)
+    public static function evaluate($request)
+    {
+        return (new Pipeline($request))->flow()->last()->getData();
+    }
+
+    public static function authenticate($request)
+    {
+
+    }
+
+    public static function respond($data)
+    {
+        return $data;
+    }
+
+    public static function run(): void
     {
         try {
-            return new Response(
-                (new Pipeline($request))->flow()->last()->getData()
-            );
+            $request = RequestFactory::make();
+            static::authenticate($request);
+            static::respond(static::evaluate($request));
         } catch (Exception $e) {
-            return new Response($e->getMessage());
+            (new ExceptionHandler($e))->respond(ResponseFactory::make());
         }
     }
 
@@ -77,7 +94,7 @@ class Api
      */
     public static function getRepresentation(): RepresentationContract
     {
-        return self::$representation ?? new Representation();
+        return static::$representation ?: new Representation();
     }
 
     /**
@@ -85,10 +102,10 @@ class Api
      */
     public static function setRepresentation($representation): void
     {
-        if (!$representation instanceof $representation) {
+        if (is_string($representation)) {
             $representation = new $representation;
         }
 
-        self::$representation = $representation;
+        static::$representation = $representation;
     }
 }

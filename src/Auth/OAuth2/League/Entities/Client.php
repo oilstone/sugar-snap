@@ -1,11 +1,11 @@
 <?php
 
-namespace Api\Auth\OAuth2\Bridge\League\Entities;
+namespace Api\Auth\OAuth2\League\Entities;
 
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Entities\Traits\EntityTrait;
 use League\OAuth2\Server\Entities\Traits\ClientTrait;
-use Stitch\Record;
+use Stitch\Records\Record;
 
 class Client implements ClientEntityInterface
 {
@@ -20,9 +20,9 @@ class Client implements ClientEntityInterface
         $this->setIdentifier($record->id);
 
         $this->name = $record->name;
-        $this->redirectUri = $record->redirects->toArray()->map(function ($item)
+        $this->redirectUri = array_map(function ($item)
         {
-            return $item->uri;
-        });
+            return $item['uri'];
+        }, $record->redirects->toArray());
     }
 }
