@@ -7,6 +7,7 @@ use Api\Representations\Contracts\Representation as RepresentationContract;
 use Api\Representations\Representation;
 use Api\Requests\Factory as RequestFactory;
 use Api\Responses\Factory as ResponseFactory;
+use Api\Auth\OAuth2\Factory as AuthFactory;
 use Api\Exceptions\Handler as ExceptionHandler;
 use Stitch\Stitch;
 use Closure;
@@ -41,6 +42,38 @@ class Api
     public static function addConnection(Closure $callback)
     {
         Stitch::addConnection($callback);
+    }
+
+    /**
+     * @param string $path
+     */
+    public static function publicKeyPath(string $path)
+    {
+        AuthFactory::setPublicKeyPath($path);
+    }
+
+    /**
+     * @param string $path
+     */
+    public static function privateKeyPath(string $path)
+    {
+        AuthFactory::setPrivateKeyPath($path);
+    }
+
+    /**
+     * @param string $key
+     */
+    public static function encryptionKey(string $key)
+    {
+        AuthFactory::setEncryptionKey($key);
+    }
+
+    /**
+     * @param string $name
+     */
+    public static function enableGrant(string $name)
+    {
+        AuthFactory::addGrant($name);
     }
 
     /**
@@ -83,14 +116,21 @@ class Api
         return (new Pipeline(static::request()))->flow()->last()->getData();
     }
 
+//    public static function authorise()
+//    {
+//        static::$request = AuthFactory::AuthorisationServer()->validate(static::request());
+//    }
+
+    /**
+     * @throws \Defuse\Crypto\Exception\BadFormatException
+     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
+     * @throws \Oilstone\RsqlParser\Exceptions\InvalidQueryStringException
+     */
     public static function authorise()
     {
-
-    }
-
-    public static function authenticate()
-    {
-        $request = static::request();
+        ResponseFactory::emitter()->emit(
+            AuthFactory::AuthorisationServer()->issueToken(static::request(), ResponseFactory::make())
+        );
     }
 
     /**
@@ -107,10 +147,12 @@ class Api
     public static function run(): void
     {
         try {
-            static::authenticate();
-            static::respond(static::evaluate());
+            static::authorise();
+
+//            static::authorise();
+//            static::respond(static::evaluate());
         } catch (Exception $e) {
-            (new ExceptionHandler($e))->respond(ResponseFactory::make(), ResponseFactory::emitter());
+            (new ExceptionHandler(ResponseFactory::make(), ResponseFactory::emitter()))->handle($e);
         }
     }
 

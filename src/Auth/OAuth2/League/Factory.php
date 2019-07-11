@@ -6,8 +6,14 @@ use Api\Auth\OAuth2\League\Repositories\Client as ClientRepository;
 use Api\Auth\OAuth2\League\Repositories\AccessToken as AccessTokenRepository;
 use Api\Auth\OAuth2\League\Repositories\Scope as ScopeRepository;
 use Api\Auth\OAuth2\League\Servers\Resource as ResourceServer;
+use Api\Auth\OAuth2\League\Servers\Authorisation as AuthorisationServer;
+use Defuse\Crypto\Key;
+use Exception;
+use League\OAuth2\Server\Grant\ClientCredentialsGrant;
 use League\OAuth2\Server\ResourceServer as BaseResourceServer;
+use League\OAuth2\Server\AuthorizationServer as BaseAuthorisationServer;
 use Stitch\Stitch;
+use DateInterval;
 
 class Factory
 {
@@ -73,20 +79,67 @@ class Factory
     }
 
     /**
+     * @param string $publicKeyPath
      * @return ResourceServer
      */
-    public static function ResourceServer()
+    public static function resourceServer(string $publicKeyPath)
     {
         return new ResourceServer(
             new BaseResourceServer(
                 static::accessTokenRepository(),
-                __DIR__ . '/../public.key'
+                $publicKeyPath
             )
         );
     }
 
-    public static function AuthServer()
+    /**
+     * @param string $privateKeyPath
+     * @param string $encryptionKey
+     * @param array $grants
+     * @return AuthorisationServer
+     * @throws \Defuse\Crypto\Exception\BadFormatException
+     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
+     */
+    public static function authorisationServer(string $privateKeyPath, string $encryptionKey, array $grants)
     {
+        $baseServer = new BaseAuthorisationServer(
+            static::clientRepository(),
+            static::accessTokenRepository(),
+            static::scopeRepository(),
+            $privateKeyPath,
+            Key::loadFromAsciiSafeString($encryptionKey)
+        );
 
+        foreach ($grants as $grant) {
+            $baseServer->enableGrantType(
+                static::resolveGrant($grant),
+                new DateInterval('PT1H')
+            );
+        }
+
+        return new AuthorisationServer($baseServer);
+    }
+
+    /**
+     * @param string $name
+     * @return ClientCredentialsGrant
+     * @throws Exception
+     */
+    public static function resolveGrant(string $name)
+    {
+        switch ($name) {
+            case 'client_credentials';
+                return static::clientCredentialsGrant();
+        }
+
+        throw new Exception('Unsupported grant type');
+    }
+
+    /**
+     * @return ClientCredentialsGrant
+     */
+    public static function clientCredentialsGrant()
+    {
+        return new ClientCredentialsGrant();
     }
 }

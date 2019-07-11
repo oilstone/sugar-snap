@@ -2,31 +2,39 @@
 
 namespace Api\Exceptions;
 
+use Api\Exceptions\Contracts\ApiException as ApiExceptionInterface;
 use Exception;
 
 class Handler
 {
-    protected $exception;
+    protected $response;
+
+    protected $emitter;
 
     /**
      * Handler constructor.
-     * @param Exception $exception
+     * @param $response
+     * @param $emitter
      */
-    public function __construct(Exception $exception)
+    public function __construct($response, $emitter)
     {
-        $this->exception = $exception;
+        $this->response = $response;
+        $this->emitter = $emitter;
     }
 
-    public function respond($response, $emitter): void
+    /**
+     * @param Exception $exception
+     */
+    public function handle(Exception $exception): void
     {
-        if ($this->exception instanceof ApiException) {
-            $emitter->emit($this->exception->formatResponse($response));
+        if ($exception instanceof ApiExceptionInterface) {
+            $this->emitter->emit($exception->formatResponse($this->response));
         } else {
-            $response->getBody()->write(
-                (new Payload())->message($this->exception->getMessage())->toJson()
+            $this->response->getBody()->write(
+                (new Payload())->message($exception->getMessage())->toJson()
             );
 
-            $emitter->emit($response->withStatus(500));
+            $this->emitter->emit($this->response->withStatus(500));
         }
     }
 }

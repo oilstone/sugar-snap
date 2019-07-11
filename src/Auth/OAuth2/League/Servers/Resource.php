@@ -4,7 +4,8 @@ namespace Api\Auth\OAuth2\League\Servers;
 
 use League\OAuth2\Server\ResourceServer;
 use League\OAuth2\Server\Exception\OAuthServerException;
-use Api\Requests\Request;
+use Api\Auth\OAuth2\League\Exceptions\AuthException;
+use Psr\Http\Message\ServerRequestInterface;
 
 class Resource
 {
@@ -15,16 +16,16 @@ class Resource
         $this->baseServer = $baseServer;
     }
 
-    public function validate(Request $request)
+    /**
+     * @param ServerRequestInterface $request
+     * @return ServerRequestInterface
+     */
+    public function validate(ServerRequestInterface $request): ServerRequestInterface
     {
         try {
-            $this->baseServer->validateAuthenticatedRequest($request->getPsr7ServerRequest());
+            return $this->baseServer->validateAuthenticatedRequest($request);
         } catch (OAuthServerException $exception) {
-            $response->setPsr7Response(
-                $exception->generateHttpResponse($response->getPsr7Response())
-            )->emit();
-        } catch (Exception $exception) {
-            $response->write($exception->getMessage())->withStatus(500)->emit();
+            throw (new AuthException())->setBaseException($exception);
         }
     }
 }
