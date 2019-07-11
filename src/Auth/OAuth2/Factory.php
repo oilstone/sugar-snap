@@ -3,66 +3,38 @@
 namespace Api\Auth\OAuth2;
 
 use Api\Auth\OAuth2\League\Factory as LeagueFactory;
+use Api\Config\Config;
 
 class Factory
 {
-    protected static $publicKeyPath;
-
-    protected static $privateKeyPath;
-
-    protected static $encryptionKey;
-
-    protected static $grants = [];
-
     /**
-     * @param string $path
+     * @return Config
      */
-    public static function setPublicKeyPath(string $path)
+    public static function config(): Config
     {
-        static::$publicKeyPath = $path;
+        return (new Config('oauth'))->accepts(
+            'publicKeyPath',
+            'privateKeyPath',
+            'encryptionKey',
+            'grants'
+        );
     }
 
     /**
-     * @param string $path
-     */
-    public static function setPrivateKeyPath(string $path)
-    {
-        static::$privateKeyPath = $path;
-    }
-
-    /**
-     * @param string $key
-     */
-    public static function setEncryptionKey(string $key)
-    {
-        static::$encryptionKey = $key;
-    }
-
-    /**
-     * @param string $name
-     */
-    public static function addGrant(string $name)
-    {
-        if (!in_array($name, static::$grants)) {
-            static::$grants[] = $name;
-        }
-    }
-
-    /**
+     * @param Config $config
      * @return League\Servers\Resource
      */
-    public static function resourceServer()
+    public static function resourceServer(Config $config)
     {
-        return LeagueFactory::resourceServer(static::$publicKeyPath);
+        return LeagueFactory::resourceServer($config);
     }
 
     /**
+     * @param Config $config
      * @return League\Servers\Authorisation
-     * @throws \Defuse\Crypto\Exception\BadFormatException
-     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
      */
-    public static function AuthorisationServer()
+    public static function AuthorisationServer(Config $config)
     {
-        return LeagueFactory::authorisationServer(static::$privateKeyPath, static::$encryptionKey, static::$grants);
+        return LeagueFactory::authorisationServer($config);
     }
 }

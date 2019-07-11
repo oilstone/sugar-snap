@@ -12,7 +12,7 @@ class Factory
     /**
      * @return mixed
      */
-    public static function make()
+    public static function response()
     {
         return static::psr7Response()->withBody(static::psr7Stream());
     }

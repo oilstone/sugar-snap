@@ -2,6 +2,7 @@
 
 namespace Api;
 
+use Api\Config\Config;
 use Api\Pipeline\Pipeline;
 use Api\Representations\Contracts\Representation as RepresentationContract;
 use Api\Representations\Representation;
@@ -29,6 +30,8 @@ class Api
      */
     protected static $prefix = '';
 
+    protected static $configs;
+
     protected static $request;
 
     /**
@@ -45,35 +48,29 @@ class Api
     }
 
     /**
-     * @param string $path
+     * @param Config $config
      */
-    public static function publicKeyPath(string $path)
+    public static function addConfig(Config $config)
     {
-        AuthFactory::setPublicKeyPath($path);
-    }
-
-    /**
-     * @param string $path
-     */
-    public static function privateKeyPath(string $path)
-    {
-        AuthFactory::setPrivateKeyPath($path);
-    }
-
-    /**
-     * @param string $key
-     */
-    public static function encryptionKey(string $key)
-    {
-        AuthFactory::setEncryptionKey($key);
+        static::$configs[$config->getName()] = $config;
     }
 
     /**
      * @param string $name
+     * @return mixed
      */
-    public static function enableGrant(string $name)
+    public static function getConfig(string $name)
     {
-        AuthFactory::addGrant($name);
+        return static::$configs[$name];
+    }
+
+    /**
+     * @param string $name
+     * @param Closure $callback
+     */
+    public static function configure(string $name, Closure $callback)
+    {
+        $callback(static::$configs[$name]);
     }
 
     /**
@@ -101,7 +98,7 @@ class Api
     public static function request()
     {
         if (static::$request === null) {
-            static::$request = RequestFactory::make();
+            static::$request = RequestFactory::request(static::getConfig('rquest'));
         }
 
         return static::$request;
@@ -129,7 +126,12 @@ class Api
     public static function authorise()
     {
         ResponseFactory::emitter()->emit(
-            AuthFactory::AuthorisationServer()->issueToken(static::request(), ResponseFactory::make())
+            AuthFactory::AuthorisationServer(
+                static::getConfig('oauth')
+            )->issueToken(
+                static::request(),
+                ResponseFactory::make()
+            )
         );
     }
 
@@ -138,7 +140,7 @@ class Api
      */
     public static function respond(string $data)
     {
-        $response = ResponseFactory::make();
+        $response = ResponseFactory::response();
         $response->getBody()->write($data);
 
         ResponseFactory::emitter()->emit($response->withHeader('Content-Type', 'application/json'));
@@ -152,7 +154,10 @@ class Api
 //            static::authorise();
 //            static::respond(static::evaluate());
         } catch (Exception $e) {
-            (new ExceptionHandler(ResponseFactory::make(), ResponseFactory::emitter()))->handle($e);
+            (new ExceptionHandler(
+                ResponseFactory::response(),
+                ResponseFactory::emitter()
+            ))->handle($e);
         }
     }
 
@@ -174,5 +179,14 @@ class Api
         }
 
         static::$representation = $representation;
+    }
+
+    /**
+     *
+     */
+    public static function boot()
+    {
+        static::addConfig(RequestFactory::config());
+        static::addConfig(AuthFactory::config());
     }
 }

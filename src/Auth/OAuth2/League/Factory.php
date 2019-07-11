@@ -7,6 +7,7 @@ use Api\Auth\OAuth2\League\Repositories\AccessToken as AccessTokenRepository;
 use Api\Auth\OAuth2\League\Repositories\Scope as ScopeRepository;
 use Api\Auth\OAuth2\League\Servers\Resource as ResourceServer;
 use Api\Auth\OAuth2\League\Servers\Authorisation as AuthorisationServer;
+use Api\Config\Config;
 use Defuse\Crypto\Key;
 use Exception;
 use League\OAuth2\Server\Grant\ClientCredentialsGrant;
@@ -79,38 +80,34 @@ class Factory
     }
 
     /**
-     * @param string $publicKeyPath
+     * @param Config $config
      * @return ResourceServer
      */
-    public static function resourceServer(string $publicKeyPath)
+    public static function resourceServer(Config $config)
     {
         return new ResourceServer(
             new BaseResourceServer(
                 static::accessTokenRepository(),
-                $publicKeyPath
+                $config->get('publicKeyPath')
             )
         );
     }
 
     /**
-     * @param string $privateKeyPath
-     * @param string $encryptionKey
-     * @param array $grants
+     * @param Config $config
      * @return AuthorisationServer
-     * @throws \Defuse\Crypto\Exception\BadFormatException
-     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
      */
-    public static function authorisationServer(string $privateKeyPath, string $encryptionKey, array $grants)
+    public static function authorisationServer(Config $config)
     {
         $baseServer = new BaseAuthorisationServer(
             static::clientRepository(),
             static::accessTokenRepository(),
             static::scopeRepository(),
-            $privateKeyPath,
-            Key::loadFromAsciiSafeString($encryptionKey)
+            $config->get('privateKeyPath'),
+            Key::loadFromAsciiSafeString($config->get('encryptionKey'))
         );
 
-        foreach ($grants as $grant) {
+        foreach ($config->get('grants') as $grant) {
             $baseServer->enableGrantType(
                 static::resolveGrant($grant),
                 new DateInterval('PT1H')

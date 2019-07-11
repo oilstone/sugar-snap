@@ -2,97 +2,39 @@
 
 namespace Api\Requests;
 
+use Api\Config\Config;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7Server\ServerRequestCreator;
 
 class Factory
 {
     /**
-     * @var array
+     * @return Config
      */
-    protected static $keys = [
-        'relations' => 'include',
-        'filters' => 'filter',
-        'sort' => 'sort',
-        'limit' => 'limit',
-    ];
-
-    /**
-     * @param string $key
-     */
-    public static function setRelationsKey(string $key)
+    public static function config(): Config
     {
-        static::$keys['relations'] = $key;
-    }
-
-    /**
-     * @param string $key
-     */
-    public static function setFiltersKey(string $key)
-    {
-        static::$keys['filters'] = $key;
-    }
-
-    /**
-     * @param string $key
-     */
-    public static function setSortKey(string $key)
-    {
-        static::$keys['sort'] = $key;
-    }
-
-    /**
-     * @param string $key
-     */
-    public static function setLimitKey(string $key)
-    {
-        static::$keys['limit'] = $key;
-    }
-
-    /**
-     * @return mixed
-     */
-    public static function getLimitKey()
-    {
-        return static::$keys['limit'];
-    }
-
-    /**
-     * @return mixed
-     */
-    public static function getRelationsKey()
-    {
-        return static::$keys['relations'];
-    }
-
-    /**
-     * @return mixed
-     */
-    public static function getFiltersKey()
-    {
-        return static::$keys['filters'];
-    }
-
-    /**
-     * @return string
-     */
-    public static function getSortKey()
-    {
-        return static::$keys['sort'];
+        return (new Config('request'))->accepts(
+            'relationsKey',
+            'filtersKey',
+            'sortKey'
+        )
+            ->relationsKey('include')
+            ->filtersKey('filter')
+            ->sortKey('sort');
     }
 
     /**
      * @return \Psr\Http\Message\ServerRequestInterface
      * @throws \Oilstone\RsqlParser\Exceptions\InvalidQueryStringException
      */
-    public static function make()
+    public static function request(Config $config)
     {
         $request = static::psr7ServerRequest();
         $parser = static::parser();
         $segments = $parser->segments($request->getUri()->getPath());
-        $relations = $parser->relations($request->getQueryParams()[static::getRelationsKey()] ?? '');
-        $filters = $parser->filters($request->getQueryParams()[static::getFiltersKey()] ?? '');
-        $sort = $parser->sort($request->getQueryParams()[static::getSortKey()] ?? '');
+        $relations = $parser->relations($request->getQueryParams()[$config->get('RelationsKey')] ?? '');
+        $filters = $parser->filters($request->getQueryParams()[$config->get('FiltersKey')] ?? '');
+        $sort = $parser->sort($request->getQueryParams()[$config->get('SortKey')] ?? '');
 
         return $request->withAttribute('segments', $segments)
             ->withAttribute('relations', $relations)
