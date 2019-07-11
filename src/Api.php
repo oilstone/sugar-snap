@@ -28,6 +28,8 @@ class Api
      */
     protected static $prefix = '';
 
+    protected static $request;
+
     /**
      * @var RepresentationContract
      */
@@ -60,32 +62,55 @@ class Api
     }
 
     /**
-     * @param $request
      * @return mixed
+     * @throws \Oilstone\RsqlParser\Exceptions\InvalidQueryStringException
      */
-    public static function evaluate($request)
+    public static function request()
     {
-        return (new Pipeline($request))->flow()->last()->getData();
+        if (static::$request === null) {
+            static::$request = RequestFactory::make();
+        }
+
+        return static::$request;
     }
 
-    public static function authenticate($request)
+    /**
+     * @return mixed
+     * @throws \Oilstone\RsqlParser\Exceptions\InvalidQueryStringException
+     */
+    public static function evaluate()
+    {
+        return (new Pipeline(static::request()))->flow()->last()->getData();
+    }
+
+    public static function authorise()
     {
 
     }
 
-    public static function respond($data)
+    public static function authenticate()
     {
-        return $data;
+        $request = static::request();
+    }
+
+    /**
+     * @param string $data
+     */
+    public static function respond(string $data)
+    {
+        $response = ResponseFactory::make();
+        $response->getBody()->write($data);
+
+        ResponseFactory::emitter()->emit($response->withHeader('Content-Type', 'application/json'));
     }
 
     public static function run(): void
     {
         try {
-            $request = RequestFactory::make();
-            static::authenticate($request);
-            static::respond(static::evaluate($request));
+            static::authenticate();
+            static::respond(static::evaluate());
         } catch (Exception $e) {
-            (new ExceptionHandler($e))->respond(ResponseFactory::make());
+            (new ExceptionHandler($e))->respond(ResponseFactory::make(), ResponseFactory::emitter());
         }
     }
 

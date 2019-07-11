@@ -23,6 +23,7 @@ class Parser
     /**
      * @param string $input
      * @return Expression
+     * @throws \Oilstone\RsqlParser\Exceptions\InvalidQueryStringException
      */
     public function filters(string $input)
     {

@@ -2,7 +2,7 @@
 
 namespace Api\Pipeline;
 
-use Api\Requests\Request;
+use Psr\Http\Message\ServerRequestInterface;
 use Api\Resources\Singleton;
 use Api\Resources\Collectable;
 use Api\Resources\Relations\Relation;
@@ -25,9 +25,9 @@ class Pipe
     /**
      * Pipe constructor.
      * @param Pipeline $pipeline
-     * @param Request $request
+     * @param ServerRequestInterface $request
      */
-    public function __construct(Pipeline $pipeline, Request $request)
+    public function __construct(Pipeline $pipeline, ServerRequestInterface $request)
     {
         $this->pipeline = $pipeline;
         $this->request = $request;
@@ -195,7 +195,7 @@ class Pipe
             return 'getByKey';
         }
 
-        switch ($this->request->method()) {
+        switch ($this->request->getMethod()) {
             case 'POST':
                 return 'create';
             case 'PUT';

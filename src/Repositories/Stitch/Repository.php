@@ -4,12 +4,12 @@ namespace Api\Repositories\Stitch;
 
 use Api\Pipeline\Pipe;
 use Api\Requests\Relation as RequestRelation;
-use Api\Requests\Request;
 use Api\Resources\Relations\Relation as ResourceRelation;
 use Api\Resources\Resource;
 use Oilstone\RsqlParser\Expression;
 use Stitch\Model;
 use Stitch\Queries\Query;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Class Repository
@@ -50,28 +50,28 @@ class Repository
 
     /**
      * @param Pipe $pipe
-     * @param Request $request
+     * @param ServerRequestInterface $request
      * @return array
      */
-    public function getCollection(Pipe $pipe, Request $request)
+    public function getCollection(Pipe $pipe, ServerRequestInterface $request)
     {
         $query = $this->scopedQuery($pipe);
-        $this->addRelations($pipe->getResource(), $query, $request->relations());
-        $this->applyRsqlExpression($query, $request->filters());
+        $this->addRelations($pipe->getResource(), $query, $request->getAttribute('relations'));
+        $this->applyRsqlExpression($query, $request->getAttribute('filters'));
 
         return $query->get()->toArray();
     }
 
     /**
      * @param Pipe $pipe
-     * @param Request $request
+     * @param ServerRequestInterface $request
      * @return array
      */
-    public function getRecord(Pipe $pipe, Request $request)
+    public function getRecord(Pipe $pipe, ServerRequestInterface $request)
     {
         $query =  $this->keyedQuery($pipe);
-        $this->addRelations($pipe->getResource(), $query, $request->relations());
-        $this->applyRsqlExpression($query, $request->filters());
+        $this->addRelations($pipe->getResource(), $query, $request->getAttribute('relations'));
+        $this->applyRsqlExpression($query, $request->getAttribute('filters'));
 
         return $query->first()->toArray();
     }

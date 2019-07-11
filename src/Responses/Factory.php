@@ -10,11 +10,11 @@ class Factory
     protected static $psr17Factory;
 
     /**
-     * @return Response
+     * @return mixed
      */
     public static function make()
     {
-        return new Response(static::psr7Response(), static::psr7Stream(), static::emitter());
+        return static::psr7Response()->withBody(static::psr7Stream());
     }
 
     /**

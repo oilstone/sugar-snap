@@ -3,7 +3,7 @@
 namespace Api\Pipeline;
 
 use Api\Registry;
-use Api\Requests\Request;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Class Pipeline
@@ -20,9 +20,9 @@ class Pipeline
 
     /**
      * Pipeline constructor.
-     * @param Request $request
+     * @param ServerRequestInterface $request
      */
-    public function __construct(Request $request)
+    public function __construct(ServerRequestInterface $request)
     {
         $this->request = $request;
     }
@@ -54,10 +54,10 @@ class Pipeline
     {
         $pipe = null;
 
-        foreach ($this->request->segments() as $piece) {
+        foreach ($this->request->getAttribute('segments') as $segment) {
             if ($pipe && !$pipe->hasKey()) {
                 if ($pipe->isCollectable()) {
-                    $pipe->setKey($piece);
+                    $pipe->setKey($segment);
 
                     continue;
                 }
@@ -66,9 +66,9 @@ class Pipeline
             $pipe = $this->newPipe();
 
             if ($penultimate = $this->penultimate()) {
-                $pipe->setEntity($penultimate->getResource()->getRelation($piece))->scope($penultimate);
+                $pipe->setEntity($penultimate->getResource()->getRelation($segment))->scope($penultimate);
             } else {
-                $pipe->setEntity(Registry::get($piece));
+                $pipe->setEntity(Registry::get($segment));
             }
         }
 

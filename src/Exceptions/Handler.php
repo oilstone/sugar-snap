@@ -8,17 +8,25 @@ class Handler
 {
     protected $exception;
 
+    /**
+     * Handler constructor.
+     * @param Exception $exception
+     */
     public function __construct(Exception $exception)
     {
         $this->exception = $exception;
     }
 
-    public function respond($response)
+    public function respond($response, $emitter): void
     {
-        if () {
-            $this->exception->respond($response);
+        if ($this->exception instanceof ApiException) {
+            $emitter->emit($this->exception->formatResponse($response));
         } else {
-            $response->write($this->exception->getMessage())->withStatus(500)->emit();
+            $response->getBody()->write(
+                (new Payload())->message($this->exception->getMessage())->toJson()
+            );
+
+            $emitter->emit($response->withStatus(500));
         }
     }
 }

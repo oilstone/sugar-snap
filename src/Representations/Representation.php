@@ -3,7 +3,7 @@
 namespace Api\Representations;
 
 use Api\Representations\Contracts\Representation as RepresentationContract;
-use Api\Requests\Request;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Class Representation
@@ -12,21 +12,21 @@ use Api\Requests\Request;
 class Representation implements RepresentationContract
 {
     /**
-     * @param Request $request
+     * @param ServerRequestInterface $request
      * @param array $collection
-     * @return mixed
+     * @return array|mixed
      */
-    public function forCollection(Request $request, array $collection)
+    public function forCollection(ServerRequestInterface $request, array $collection)
     {
         return $collection;
     }
 
     /**
-     * @param Request $request
+     * @param ServerRequestInterface $request
      * @param array $item
-     * @return mixed
+     * @return array|mixed
      */
-    public function forSingleton(Request $request, array $item)
+    public function forSingleton(ServerRequestInterface $request, array $item)
     {
         return $item;
     }

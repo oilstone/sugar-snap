@@ -4,9 +4,7 @@ namespace Api\Resources;
 
 use Api\Api;
 use Api\Pipeline\Pipe;
-use Api\Pipeline\Pipeline;
-use Api\Pipeline\Scope;
-use Api\Requests\Request;
+use Psr\Http\Message\ServerRequestInterface;
 use Api\Resources\Relations\Collection as Relations;
 use Api\Resources\Relations\HasMany;
 use Api\Resources\Relations\Relation;
@@ -195,11 +193,11 @@ class Resource
 
     /**
      * @param Pipe $pipe
-     * @param Request $request
+     * @param ServerRequestInterface $request
      * @return mixed
      * @throws Exception
      */
-    public function getCollection(Pipe $pipe, Request $request)
+    public function getCollection(Pipe $pipe, ServerRequestInterface $request)
     {
         if (!$this->endpointEnabled('index')) {
             throw new Exception("The index endpoint is not available on the $this->name resource");
@@ -210,11 +208,11 @@ class Resource
 
     /**
      * @param Pipe $pipe
-     * @param Request $request
+     * @param ServerRequestInterface $request
      * @return mixed
      * @throws Exception
      */
-    public function getRecord(Pipe $pipe, Request $request)
+    public function getRecord(Pipe $pipe, ServerRequestInterface $request)
     {
         if (!$this->endpointEnabled('show')) {
             throw new Exception("The show endpoint is not available on the $this->name resource");

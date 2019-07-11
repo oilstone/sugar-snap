@@ -4,7 +4,7 @@ namespace Api\Representations;
 
 use Api\Representations\Contracts\Representation as RepresentationContract;
 use Api\Requests\Relation;
-use Api\Requests\Request;
+use Psr\Http\Message\ServerRequestInterface;
 use Api\Support\Str;
 use Neomerx\JsonApi\Encoder\Encoder;
 use Neomerx\JsonApi\Schema\Arr as ArrSchema;
@@ -33,16 +33,16 @@ class JsonApi extends Representation implements RepresentationContract
     }
 
     /**
-     * @param Request $request
+     * @param ServerRequestInterface $request
      * @param array $collection
-     * @return mixed
+     * @return array|mixed|string
      */
-    public function forCollection(Request $request, array $collection)
+    public function forCollection(ServerRequestInterface $request, array $collection)
     {
-        $this->encoder->withIncludedPaths($this->collapseRelations($request->relations()));
+        $this->encoder->withIncludedPaths($this->collapseRelations($request->getAttribute('relations')));
 
         return $this->encoder->encodeCollectionArray(
-            $request->segments()[count($request->segments()) - 1],
+            $request->getAttribute('segments')[count($request->getAttribute('segments')) - 1],
             $this->prepare($collection)
         );
     }
@@ -117,11 +117,11 @@ class JsonApi extends Representation implements RepresentationContract
     }
 
     /**
-     * @param Request $request
+     * @param ServerRequestInterface $request
      * @param array $item
-     * @return mixed
+     * @return array|mixed|string
      */
-    public function forSingleton(Request $request, array $item)
+    public function forSingleton(ServerRequestInterface $request, array $item)
     {
         $this->encoder->withIncludedPaths(['exhibitions']);
 
