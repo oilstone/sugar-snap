@@ -2,6 +2,8 @@
 
 namespace Api\Config;
 
+use Closure;
+
 class Config
 {
     protected $name;
@@ -58,7 +60,14 @@ class Config
      */
     public function get(string $key)
     {
-        return $this->values[$key] ?? null;
+        $value = $this->values[$key] ?? null;
+
+        if ($value instanceof Closure) {
+            $value = $value();
+            $this->set($key, $value);
+        }
+
+        return $value;
     }
 
     /**

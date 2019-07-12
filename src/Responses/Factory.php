@@ -10,11 +10,27 @@ class Factory
     protected static $psr17Factory;
 
     /**
+     * @param string $content
      * @return mixed
      */
-    public static function response()
+    public static function response(string $content = '')
     {
-        return static::psr7Response()->withBody(static::psr7Stream());
+        $response = static::psr7Response()->withBody(static::psr7Stream());
+
+        if ($content) {
+            $response->getBody()->write($content);
+        }
+
+        return $response;
+    }
+
+    /**
+     * @param string $content
+     * @return mixed
+     */
+    public static function json(string $content = '')
+    {
+        return static::response($content)->withHeader('Content-Type', 'application/json');
     }
 
     /**

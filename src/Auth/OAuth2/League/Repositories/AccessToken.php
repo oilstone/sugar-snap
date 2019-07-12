@@ -12,6 +12,10 @@ class AccessToken implements AccessTokenRepositoryInterface
 {
     protected $model;
 
+    /**
+     * AccessToken constructor.
+     * @param Model $model
+     */
     public function __construct(Model $model)
     {
         $this->model = $model;
@@ -61,6 +65,8 @@ class AccessToken implements AccessTokenRepositoryInterface
      */
     public function isAccessTokenRevoked($tokenId)
     {
-        return $this->model->find($tokenId)->revoked;
+        $token = $this->model->find($tokenId);
+
+        return $token === null || $token->revoked;
     }
 }

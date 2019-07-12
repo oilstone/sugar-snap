@@ -132,7 +132,7 @@ class Repository
      * @param $query
      * @param Expression $expression
      */
-    function applyRsqlExpression($query, Expression $expression)
+    public function applyRsqlExpression($query, Expression $expression)
     {
         foreach ($expression as $item) {
             $method = $item['operator'] == 'OR' ? 'orWhere' : 'where';

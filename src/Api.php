@@ -119,7 +119,16 @@ class Api
      */
     public static function validateToken()
     {
-        static::$request = AuthFactory::resourceServer(static::getConfig('oauth'))->validate(static::request());
+        static::$request = AuthFactory::resourceServer(static::getConfig('oauth'))
+            ->validate(static::request());
+    }
+
+    /**
+     * @throws \Oilstone\RsqlParser\Exceptions\InvalidQueryStringException
+     */
+    public static function guard()
+    {
+        static::validateToken();
     }
 
     /**
@@ -130,12 +139,8 @@ class Api
         static::try(function ()
         {
             static::respond(
-                AuthFactory::AuthorisationServer(
-                    static::getConfig('oauth')
-                )->issueToken(
-                    static::request(),
-                    ResponseFactory::response()
-                )
+                AuthFactory::AuthorisationServer(static::getConfig('oauth'))
+                    ->issueToken(static::request(), ResponseFactory::response())
             );
         });
     }
@@ -149,26 +154,14 @@ class Api
     }
 
     /**
-     * @param string $data
-     * @return mixed
-     */
-    public static function response(string $data)
-    {
-        $response = ResponseFactory::response();
-        $response->getBody()->write($data);
-
-        return $response->withHeader('Content-Type', 'application/json');
-    }
-
-    /**
      *
      */
     public static function run(): void
     {
         static::try(function ()
         {
-            static::validateToken();
-            static::respond(static::response(static::evaluate()));
+            static::guard();
+            static::respond(ResponseFactory::json(static::evaluate()));
         });
     }
 
@@ -181,7 +174,7 @@ class Api
             $callback();
         } catch (Exception $e) {
             (new ExceptionHandler(
-                ResponseFactory::response(),
+                ResponseFactory::json(),
                 ResponseFactory::emitter()
             ))->handle($e);
         }
