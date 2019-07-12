@@ -8,16 +8,29 @@ use Api\Auth\OAuth2\League\Repositories\Scope as ScopeRepository;
 use Api\Auth\OAuth2\League\Servers\Resource as ResourceServer;
 use Api\Auth\OAuth2\League\Servers\Authorisation as AuthorisationServer;
 use Api\Config\Config;
-use Defuse\Crypto\Key;
-use Exception;
 use League\OAuth2\Server\Grant\ClientCredentialsGrant;
 use League\OAuth2\Server\ResourceServer as BaseResourceServer;
 use League\OAuth2\Server\AuthorizationServer as BaseAuthorisationServer;
+use Defuse\Crypto\Key;
 use Stitch\Stitch;
 use DateInterval;
+use Exception;
 
 class Factory
 {
+    /**
+     * @return Config
+     */
+    public static function config(): Config
+    {
+        return (new Config('oauth'))->accepts(
+            'publicKeyPath',
+            'privateKeyPath',
+            'encryptionKey',
+            'grants'
+        );
+    }
+
     /**
      * @return ClientRepository
      */
@@ -107,9 +120,9 @@ class Factory
             Key::loadFromAsciiSafeString($config->get('encryptionKey'))
         );
 
-        foreach ($config->get('grants') as $grant) {
+        foreach ($config->get('grants') as $name) {
             $baseServer->enableGrantType(
-                static::resolveGrant($grant),
+                static::resolveGrant($name),
                 new DateInterval('PT1H')
             );
         }

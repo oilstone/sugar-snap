@@ -22,6 +22,25 @@ class Pipe
 
     protected $data = [];
 
+    protected $action;
+
+    protected $method;
+
+    protected $arguments;
+
+    protected const ACTION_MAP = [
+        'POST' => 'create',
+        'GET' => 'read',
+        'PUT' => 'update',
+        'DELETE' => 'delete'
+    ];
+
+    protected const METHOD_MAP = [
+        'POST' => 'create',
+        'PUT' => 'update',
+        'DELETE' => 'destroy'
+    ];
+
     /**
      * Pipe constructor.
      * @param Pipeline $pipeline
@@ -143,7 +162,14 @@ class Pipe
      */
     public function call()
     {
-        $this->data = $this->getResource()->{$this->resolveMethod()}(...$this->resolveArguments());
+        $this->resolve();
+        $resource = $this->getResource();
+
+        if (!$this->request->getAttribute('oauth_scopes')->can($this->action, $resource->getName())) {
+            throw new \Exception('you cant do that');
+        }
+
+        $this->data = $resource->{$this->method}(...$this->arguments);
 
         return $this;
     }
@@ -173,37 +199,28 @@ class Pipe
     }
 
     /**
-     * @return array
+     * @return $this
      */
-    protected function resolveArguments()
+    protected function resolve()
     {
-        $arguments = [$this];
+        $httpMethod = $this->request->getMethod();
+        $this->arguments = [$this];
 
         if ($this->isLast()) {
-            $arguments[] = $this->request;
+            $this->arguments[] = $this->request;
+        } else {
+            $this->action = 'read';
+            $this->method = 'getByKey';
+
+            return $this;
         }
 
-        return $arguments;
-    }
+        $this->action = $this::ACTION_MAP[$httpMethod];
 
-    /**
-     * @return string
-     */
-    protected function resolveMethod()
-    {
-        if (!$this->isLast()) {
-            return 'getByKey';
-        }
+        $this->method = $httpMethod === 'GET'
+            ? 'get' . ($this->hasKey() ? 'Record' : 'Collection')
+            : $this::METHOD_MAP[$httpMethod];
 
-        switch ($this->request->getMethod()) {
-            case 'POST':
-                return 'create';
-            case 'PUT';
-                return 'update';
-            case 'DELETE';
-                return 'destroy';
-            default:
-                return 'get' . ($this->key ? 'Record' : 'Collection');
-        }
+        return $this;
     }
 }

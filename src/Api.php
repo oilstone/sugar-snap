@@ -10,6 +10,7 @@ use Api\Requests\Factory as RequestFactory;
 use Api\Responses\Factory as ResponseFactory;
 use Api\Auth\OAuth2\Factory as AuthFactory;
 use Api\Exceptions\Handler as ExceptionHandler;
+use Psr\Http\Message\ResponseInterface;
 use Stitch\Stitch;
 use Closure;
 use Exception;
@@ -61,7 +62,7 @@ class Api
      */
     public static function getConfig(string $name)
     {
-        return static::$configs[$name];
+        return static::$configs[$name] ?? null;
     }
 
     /**
@@ -98,7 +99,7 @@ class Api
     public static function request()
     {
         if (static::$request === null) {
-            static::$request = RequestFactory::request(static::getConfig('rquest'));
+            static::$request = RequestFactory::request(static::getConfig('request'));
         }
 
         return static::$request;
@@ -113,46 +114,71 @@ class Api
         return (new Pipeline(static::request()))->flow()->last()->getData();
     }
 
-//    public static function authorise()
-//    {
-//        static::$request = AuthFactory::AuthorisationServer()->validate(static::request());
-//    }
+    /**
+     * @throws \Oilstone\RsqlParser\Exceptions\InvalidQueryStringException
+     */
+    public static function validateToken()
+    {
+        static::$request = AuthFactory::resourceServer(static::getConfig('oauth'))->validate(static::request());
+    }
 
     /**
-     * @throws \Defuse\Crypto\Exception\BadFormatException
-     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
-     * @throws \Oilstone\RsqlParser\Exceptions\InvalidQueryStringException
+     *
      */
     public static function authorise()
     {
-        ResponseFactory::emitter()->emit(
-            AuthFactory::AuthorisationServer(
-                static::getConfig('oauth')
-            )->issueToken(
-                static::request(),
-                ResponseFactory::make()
-            )
-        );
+        static::try(function ()
+        {
+            static::respond(
+                AuthFactory::AuthorisationServer(
+                    static::getConfig('oauth')
+                )->issueToken(
+                    static::request(),
+                    ResponseFactory::response()
+                )
+            );
+        });
+    }
+
+    /**
+     * @param ResponseInterface $response
+     */
+    public static function respond(ResponseInterface $response)
+    {
+        ResponseFactory::emitter()->emit($response);
     }
 
     /**
      * @param string $data
+     * @return mixed
      */
-    public static function respond(string $data)
+    public static function response(string $data)
     {
         $response = ResponseFactory::response();
         $response->getBody()->write($data);
 
-        ResponseFactory::emitter()->emit($response->withHeader('Content-Type', 'application/json'));
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
+    /**
+     *
+     */
     public static function run(): void
     {
-        try {
-            static::authorise();
+        static::try(function ()
+        {
+            static::validateToken();
+            static::respond(static::response(static::evaluate()));
+        });
+    }
 
-//            static::authorise();
-//            static::respond(static::evaluate());
+    /**
+     * @param Closure $callback
+     */
+    protected static function try(Closure $callback)
+    {
+        try {
+            $callback();
         } catch (Exception $e) {
             (new ExceptionHandler(
                 ResponseFactory::response(),

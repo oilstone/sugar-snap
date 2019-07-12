@@ -12,12 +12,7 @@ class Factory
      */
     public static function config(): Config
     {
-        return (new Config('oauth'))->accepts(
-            'publicKeyPath',
-            'privateKeyPath',
-            'encryptionKey',
-            'grants'
-        );
+        return LeagueFactory::config();
     }
 
     /**
