@@ -1,8 +1,8 @@
 <?php
 
-namespace Api\Auth\OAuth2\League\Repositories;
+namespace Api\Guards\OAuth2\League\Repositories;
 
-use Api\Auth\OAuth2\League\Entities\RefreshToken as Entity;
+use Api\Guards\OAuth2\League\Entities\RefreshToken as Entity;
 use League\OAuth2\Server\Entities\RefreshTokenEntityInterface;
 use League\OAuth2\Server\Repositories\RefreshTokenRepositoryInterface;
 use Stitch\Model;

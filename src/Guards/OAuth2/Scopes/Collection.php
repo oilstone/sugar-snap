@@ -1,6 +1,6 @@
 <?php
 
-namespace Api\Auth\OAuth2\Scopes;
+namespace Api\Guards\OAuth2\Scopes;
 
 class Collection
 {
@@ -31,14 +31,14 @@ class Collection
     }
 
     /**
-     * @param string $action
+     * @param string $operation
      * @param string $resource
      * @return bool
      */
-    public function can(string $action, string $resource)
+    public function can(string $operation, string $resource)
     {
-        foreach ($this->items as $item) {
-            if ($item->isFor($resource) && $item->hasAction($action)) {
+        foreach ($this->items as $scope) {
+            if ($scope->isFor($resource) && $scope->isAllowedTo($operation)) {
                 return true;
             }
         }

@@ -1,19 +1,17 @@
 <?php
 
-namespace Api\Auth\OAuth2\League;
+namespace Api\Guards\OAuth2\League;
 
-use Api\Auth\OAuth2\League\Repositories\Client as ClientRepository;
-use Api\Auth\OAuth2\League\Repositories\AccessToken as AccessTokenRepository;
-use Api\Auth\OAuth2\League\Repositories\RefreshToken as RefreshTokenRepository;
-use Api\Auth\OAuth2\League\Repositories\Scope as ScopeRepository;
-use Api\Auth\OAuth2\League\Repositories\User as UserRepository;
-use Api\Auth\OAuth2\League\Servers\Resource as ResourceServer;
-use Api\Auth\OAuth2\League\Servers\Authorisation as AuthorisationServer;
+use Api\Guards\OAuth2\League\Repositories\Client as ClientRepository;
+use Api\Guards\OAuth2\League\Repositories\AccessToken as AccessTokenRepository;
+use Api\Guards\OAuth2\League\Repositories\RefreshToken as RefreshTokenRepository;
+use Api\Guards\OAuth2\League\Repositories\Scope as ScopeRepository;
+use Api\Guards\OAuth2\League\Repositories\User as UserRepository;
 use Api\Config\Config;
 use League\OAuth2\Server\Grant\ClientCredentialsGrant;
 use League\OAuth2\Server\Grant\PasswordGrant;
-use League\OAuth2\Server\ResourceServer as BaseResourceServer;
-use League\OAuth2\Server\AuthorizationServer as BaseAuthorisationServer;
+use League\OAuth2\Server\ResourceServer;
+use League\OAuth2\Server\AuthorizationServer;
 use Defuse\Crypto\Key;
 use Stitch\Stitch;
 use DateInterval;
@@ -21,18 +19,24 @@ use Exception;
 
 class Factory
 {
+    protected static $config;
+
     /**
      * @return Config
      */
     public static function config(): Config
     {
-        return (new Config('oauth'))->accepts(
-            'publicKeyPath',
-            'privateKeyPath',
-            'encryptionKey',
-            'grants',
-            'userRepository'
-        );
+        if (!static::$config) {
+            static::$config = (new Config('oauth'))->accepts(
+                'publicKeyPath',
+                'privateKeyPath',
+                'encryptionKey',
+                'grants',
+                'userRepository'
+            );
+        }
+
+        return static::$config;
     }
 
     /**
@@ -117,40 +121,34 @@ class Factory
     }
 
     /**
-     * @param Config $config
      * @return ResourceServer
      */
-    public static function resourceServer(Config $config)
+    public static function resourceServer()
     {
-        return new ResourceServer(
-            new BaseResourceServer(
-                static::accessTokenRepository(),
-                $config->get('publicKeyPath')
-            )
+        new ResourceServer(
+            static::accessTokenRepository(),
+            static::$config->get('publicKeyPath')
         );
     }
 
     /**
-     * @param Config $config
      * @return AuthorisationServer
-     * @throws \Defuse\Crypto\Exception\BadFormatException
-     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
      */
-    public static function authorisationServer(Config $config)
+    public static function authorisationServer()
     {
-        $baseServer = new BaseAuthorisationServer(
+        $server = new AuthorisationServer(
             static::clientRepository(),
             static::accessTokenRepository(),
             static::scopeRepository(),
-            $config->get('privateKeyPath'),
-            Key::loadFromAsciiSafeString($config->get('encryptionKey'))
+            static::$config->get('privateKeyPath'),
+            Key::loadFromAsciiSafeString(static::$config->get('encryptionKey'))
         );
 
-        foreach ($config->get('grants') as $name) {
-            $baseServer->enableGrantType(static::grant($name, $config), new DateInterval('PT1H'));
+        foreach (static::$config->get('grants') as $name) {
+            $server->enableGrantType(static::grant($name), new DateInterval('PT1H'));
         }
 
-        return new AuthorisationServer($baseServer);
+        return $server;
     }
 
     /**
@@ -159,14 +157,14 @@ class Factory
      * @return ClientCredentialsGrant|PasswordGrant
      * @throws Exception
      */
-    public static function grant(string $name, Config $config)
+    public static function grant(string $name)
     {
         switch ($name) {
             case 'client_credentials';
                 return static::clientCredentialsGrant();
 
             case 'password';
-                return static::passwordGrant($config);
+                return static::passwordGrant(static::$config);
         }
 
         throw new Exception('Unsupported grant type');
@@ -185,10 +183,10 @@ class Factory
      * @return PasswordGrant
      * @throws Exception
      */
-    public static function passwordGrant(Config $config)
+    public static function passwordGrant()
     {
         $grant = new PasswordGrant(
-            static::userRepository($config->get('userRepository')),
+            static::userRepository(static::$config->get('userRepository')),
             static::refreshTokenRepository()
         );
 

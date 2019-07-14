@@ -15,7 +15,7 @@ class Parser
      * @param string $input
      * @return array
      */
-    public function segments(string $input)
+    public static function segments(string $input)
     {
         return array_values(array_filter(explode('/', $input)));
     }
@@ -25,7 +25,7 @@ class Parser
      * @return Expression
      * @throws \Oilstone\RsqlParser\Exceptions\InvalidQueryStringException
      */
-    public function filters(string $input)
+    public static function filters(string $input)
     {
         return RsqlParser::parse($input);
     }
@@ -34,7 +34,7 @@ class Parser
      * @param string $input
      * @return array
      */
-    public function relations(string $input)
+    public static function relations(string $input)
     {
         $relations = [];
         $items = array_filter(explode(',', $input));
@@ -50,7 +50,7 @@ class Parser
      * @param string $input
      * @return array
      */
-    public function sort(string $input)
+    public static function sort(string $input)
     {
         $sort = [];
         $items = array_filter(explode(',', $input));

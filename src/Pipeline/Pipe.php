@@ -22,13 +22,13 @@ class Pipe
 
     protected $data = [];
 
-    protected $action;
+    protected $operation;
 
     protected $method;
 
     protected $arguments;
 
-    protected const ACTION_MAP = [
+    protected const OPERATION_MAP = [
         'POST' => 'create',
         'GET' => 'read',
         'PUT' => 'update',
@@ -162,14 +162,7 @@ class Pipe
      */
     public function call()
     {
-        $this->resolve();
-        $resource = $this->getResource();
-
-        if (!$this->request->getAttribute('oauth_scopes')->can($this->action, $resource->getName())) {
-            throw new \Exception('you cant do that');
-        }
-
-        $this->data = $resource->{$this->method}(...$this->arguments);
+        $this->data = $this->getResource()->{$this->method}(...$this->arguments);
 
         return $this;
     }
@@ -201,7 +194,7 @@ class Pipe
     /**
      * @return $this
      */
-    protected function resolve()
+    public function classify()
     {
         $httpMethod = $this->request->getMethod();
         $this->arguments = [$this];
@@ -209,13 +202,13 @@ class Pipe
         if ($this->isLast()) {
             $this->arguments[] = $this->request;
         } else {
-            $this->action = 'read';
+            $this->operation = 'read';
             $this->method = 'getByKey';
 
             return $this;
         }
 
-        $this->action = $this::ACTION_MAP[$httpMethod];
+        $this->operation = $this::OPERATION_MAP[$httpMethod];
 
         $this->method = $httpMethod === 'GET'
             ? 'get' . ($this->hasKey() ? 'Record' : 'Collection')

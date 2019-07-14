@@ -1,8 +1,8 @@
 <?php
 
-namespace Api\Auth\OAuth2\League\Repositories;
+namespace Api\Guards\OAuth2\League\Repositories;
 
-use Api\Auth\OAuth2\League\Entities\AccessToken as Entity;
+use Api\Guards\OAuth2\League\Entities\AccessToken as Entity;
 use League\OAuth2\Server\Entities\AccessTokenEntityInterface;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Repositories\AccessTokenRepositoryInterface;

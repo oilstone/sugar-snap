@@ -8,7 +8,7 @@ use Api\Representations\Contracts\Representation as RepresentationContract;
 use Api\Representations\Representation;
 use Api\Requests\Factory as RequestFactory;
 use Api\Responses\Factory as ResponseFactory;
-use Api\Auth\OAuth2\Factory as AuthFactory;
+use Api\Guards\OAuth2\Factory as GuardFactory;
 use Api\Exceptions\Handler as ExceptionHandler;
 use Psr\Http\Message\ResponseInterface;
 use Stitch\Stitch;
@@ -31,7 +31,7 @@ class Api
      */
     protected static $prefix = '';
 
-    protected static $configs;
+    protected static $configs = [];
 
     protected static $request;
 
@@ -84,54 +84,6 @@ class Api
     }
 
     /**
-     * @param string $name
-     * @return mixed|null
-     */
-    public static function resolve(string $name)
-    {
-        return Registry::get($name);
-    }
-
-    /**
-     * @return mixed
-     * @throws \Oilstone\RsqlParser\Exceptions\InvalidQueryStringException
-     */
-    public static function request()
-    {
-        if (static::$request === null) {
-            static::$request = RequestFactory::request(static::getConfig('request'));
-        }
-
-        return static::$request;
-    }
-
-    /**
-     * @return mixed
-     * @throws \Oilstone\RsqlParser\Exceptions\InvalidQueryStringException
-     */
-    public static function evaluate()
-    {
-        return (new Pipeline(static::request()))->flow()->last()->getData();
-    }
-
-    /**
-     * @throws \Oilstone\RsqlParser\Exceptions\InvalidQueryStringException
-     */
-    public static function validateToken()
-    {
-        static::$request = AuthFactory::resourceServer(static::getConfig('oauth'))
-            ->validate(static::request());
-    }
-
-    /**
-     * @throws \Oilstone\RsqlParser\Exceptions\InvalidQueryStringException
-     */
-    public static function guard()
-    {
-        static::validateToken();
-    }
-
-    /**
      *
      */
     public static function authorise()
@@ -139,18 +91,10 @@ class Api
         static::try(function ()
         {
             static::respond(
-                AuthFactory::AuthorisationServer(static::getConfig('oauth'))
-                    ->issueToken(static::request(), ResponseFactory::response())
+                GuardFactory::authoriser(static::$request)
+                    ->formatResponse(ResponseFactory::response())
             );
         });
-    }
-
-    /**
-     * @param ResponseInterface $response
-     */
-    public static function respond(ResponseInterface $response)
-    {
-        ResponseFactory::emitter()->emit($response);
     }
 
     /**
@@ -160,8 +104,12 @@ class Api
     {
         static::try(function ()
         {
-            static::guard();
-            static::respond(ResponseFactory::json(static::evaluate()));
+            $pipeline = (new Pipeline(static::$request))->assemble();
+            GuardFactory::sentinel(static::$request, $pipeline)->protect();
+
+            static::respond(ResponseFactory::json(
+                $pipeline->call()->last()->getData()
+            ));
         });
     }
 
@@ -178,6 +126,14 @@ class Api
                 ResponseFactory::emitter()
             ))->handle($e);
         }
+    }
+
+    /**
+     * @param ResponseInterface $response
+     */
+    public static function respond(ResponseInterface $response)
+    {
+        ResponseFactory::emitter()->emit($response);
     }
 
     /**
@@ -205,7 +161,8 @@ class Api
      */
     public static function boot()
     {
+        static::$request = RequestFactory::request();
         static::addConfig(RequestFactory::config());
-        static::addConfig(AuthFactory::config());
+        static::addConfig(GuardFactory::config());
     }
 }

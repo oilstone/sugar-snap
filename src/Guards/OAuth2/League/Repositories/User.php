@@ -1,10 +1,10 @@
 <?php
 
-namespace Api\Auth\OAuth2\League\Repositories;
+namespace Api\Guards\OAuth2\League\Repositories;
 
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Repositories\UserRepositoryInterface;
-use Api\Auth\OAuth2\League\Entities\User as Entity;
+use Api\Guards\OAuth2\League\Entities\User as Entity;
 
 class User implements UserRepositoryInterface
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace Api\Auth\OAuth2\League\Exceptions;
+namespace Api\Guards\OAuth2\League\Exceptions;
 
 use Api\Exceptions\Contracts\ApiException as ApiExceptionInterface;
 use League\OAuth2\Server\Exception\OAuthServerException;

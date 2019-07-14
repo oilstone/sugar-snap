@@ -1,6 +1,6 @@
 <?php
 
-namespace Api\Auth\OAuth2\League\Entities;
+namespace Api\Guards\OAuth2\League\Entities;
 
 use League\OAuth2\Server\Entities\Traits\EntityTrait;
 use League\OAuth2\Server\Entities\Traits\RefreshTokenTrait;

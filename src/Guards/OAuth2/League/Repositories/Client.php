@@ -1,8 +1,8 @@
 <?php
 
-namespace Api\Auth\OAuth2\League\Repositories;
+namespace Api\Guards\OAuth2\League\Repositories;
 
-use Api\Auth\OAuth2\League\Entities\Client as Entity;
+use Api\Guards\OAuth2\League\Entities\Client as Entity;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
 use Stitch\Model;

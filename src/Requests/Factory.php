@@ -8,46 +8,44 @@ use Nyholm\Psr7Server\ServerRequestCreator;
 
 class Factory
 {
+    protected static $config;
+
     /**
      * @return Config
      */
     public static function config(): Config
     {
-        return (new Config('request'))->accepts(
-            'relationsKey',
-            'filtersKey',
-            'sortKey'
-        )
-            ->relationsKey('include')
-            ->filtersKey('filter')
-            ->sortKey('sort');
+        if (!static::$config)
+        {
+            return (new Config('request'))->accepts(
+                'relationsKey',
+                'filtersKey',
+                'sortKey'
+            )
+                ->relationsKey('include')
+                ->filtersKey('filter')
+                ->sortKey('sort');
+        }
+
+        return static::$config;
     }
 
     /**
      * @return \Psr\Http\Message\ServerRequestInterface
      * @throws \Oilstone\RsqlParser\Exceptions\InvalidQueryStringException
      */
-    public static function request(Config $config)
+    public static function request()
     {
         $request = static::psr7ServerRequest();
-        $parser = static::parser();
-        $segments = $parser->segments($request->getUri()->getPath());
-        $relations = $parser->relations($request->getQueryParams()[$config->get('RelationsKey')] ?? '');
-        $filters = $parser->filters($request->getQueryParams()[$config->get('FiltersKey')] ?? '');
-        $sort = $parser->sort($request->getQueryParams()[$config->get('SortKey')] ?? '');
+        $segments = Parser::segments($request->getUri()->getPath());
+        $relations = Parser::relations($request->getQueryParams()[static::$config->get('RelationsKey')] ?? '');
+        $filters = Parser::filters($request->getQueryParams()[static::$config->get('FiltersKey')] ?? '');
+        $sort = Parser::sort($request->getQueryParams()[static::$config->get('SortKey')] ?? '');
 
         return $request->withAttribute('segments', $segments)
             ->withAttribute('relations', $relations)
             ->withAttribute('filters', $filters)
             ->withAttribute('sort', $sort);
-    }
-
-    /**
-     * @return Parser
-     */
-    public static function parser()
-    {
-        return new Parser();
     }
 
     /**

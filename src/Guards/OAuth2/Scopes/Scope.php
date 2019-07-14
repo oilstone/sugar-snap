@@ -1,10 +1,10 @@
 <?php
 
-namespace Api\Auth\OAuth2\Scopes;
+namespace Api\Guards\OAuth2\Scopes;
 
 class Scope
 {
-    protected $action;
+    protected $operation;
 
     protected $resource;
 
@@ -16,16 +16,16 @@ class Scope
     {
         $pieces = explode(':', $scope);
 
-        return (new static())->resource($pieces[0])->action($pieces[1]);
+        return (new static())->resource($pieces[0])->operation($pieces[1]);
     }
 
     /**
      * @param string $name
      * @return $this
      */
-    public function action(string $name)
+    public function operation(string $name)
     {
-        $this->action = $name;
+        $this->operation = $name;
 
         return $this;
     }
@@ -34,9 +34,9 @@ class Scope
      * @param string $name
      * @return bool
      */
-    public function hasAction(string $name)
+    public function isAllowedTo(string $name)
     {
-        return ($this->action === $name || $this->action === '*');
+        return ($this->operation === $name || $this->operation === '*');
     }
 
     /**

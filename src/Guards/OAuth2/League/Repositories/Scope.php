@@ -1,10 +1,10 @@
 <?php
 
-namespace Api\Auth\OAuth2\League\Repositories;
+namespace Api\Guards\OAuth2\League\Repositories;
 
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
-use Api\Auth\OAuth2\League\Entities\Scope as Entity;
+use Api\Guards\OAuth2\League\Entities\Scope as Entity;
 use Stitch\Model;
 
 

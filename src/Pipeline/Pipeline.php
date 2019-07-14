@@ -11,12 +11,12 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 class Pipeline
 {
+    protected $request;
+
     /**
      * @var array
      */
     protected $pipes = [];
-
-    protected $request;
 
     /**
      * Pipeline constructor.
@@ -50,7 +50,7 @@ class Pipeline
     /**
      * @return $this
      */
-    protected function assemble()
+    public function assemble()
     {
         $pipe = null;
 
@@ -72,7 +72,7 @@ class Pipeline
             }
         }
 
-        return $this;
+        return $this->classify();
     }
 
     /**
@@ -120,9 +120,11 @@ class Pipeline
     /**
      * @return $this
      */
-    public function flow()
+    protected function classify()
     {
-        $this->assemble()->call();
+        foreach ($this->pipes as $pipe) {
+            $pipe->classify();
+        }
 
         return $this;
     }
@@ -130,7 +132,7 @@ class Pipeline
     /**
      * @return $this
      */
-    protected function call()
+    public function call()
     {
         foreach ($this->pipes as $pipe) {
             $pipe->call();
