@@ -156,7 +156,7 @@ class Resource
             $name,
             function () use ($class, $name, $arguments) {
                 /** @var Relation $relation */
-                $relation = new $class($this);
+                $relation = (new $class($this))->name($name);
 
                 if (count($arguments) && $arguments[0] instanceof Closure) {
                     $arguments[0]($relation);

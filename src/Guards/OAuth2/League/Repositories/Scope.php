@@ -10,17 +10,6 @@ use Stitch\Model;
 
 class Scope implements ScopeRepositoryInterface
 {
-    protected $model;
-
-    /**
-     * Scope constructor.
-     * @param Model $model
-     */
-    public function __construct(Model $model)
-    {
-        $this->model = $model;
-    }
-
     /**
      * @param string $identifier
      * @return Entity

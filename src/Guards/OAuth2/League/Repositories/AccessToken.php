@@ -3,6 +3,7 @@
 namespace Api\Guards\OAuth2\League\Repositories;
 
 use Api\Guards\OAuth2\League\Entities\AccessToken as Entity;
+use Api\Guards\OAuth2\Scopes\Scope;
 use League\OAuth2\Server\Entities\AccessTokenEntityInterface;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Repositories\AccessTokenRepositoryInterface;
@@ -34,20 +35,13 @@ class AccessToken implements AccessTokenRepositoryInterface
      */
     public function persistNewAccessToken(AccessTokenEntityInterface $accessTokenEntity)
     {
-        $record = $this->model->make([
+        $this->model->make([
             'id' => $accessTokenEntity->getIdentifier(),
             'client_id' => $accessTokenEntity->getClient()->getIdentifier(),
+            'user_id' => $accessTokenEntity->getUserIdentifier(),
             'revoked' => false,
             'expires_at' => $accessTokenEntity->getExpiryDateTime()->format('Y-m-d H:i:s')
-        ]);
-
-        foreach ($accessTokenEntity->getScopes() as $scope) {
-            $record->scopes->new([
-                'name' => $scope->getIdentifier()
-            ]);
-        }
-
-        $record->save()->scopes->save();
+        ])->save();
     }
 
     /**

@@ -38,9 +38,9 @@ class Factory
     {
         $request = static::request();
         $segments = Parser::segments($request->getUri()->getPath());
-        $relations = Parser::relations($request->getQueryParams()[static::$config->get('RelationsKey')] ?? '');
-        $filters = Parser::filters($request->getQueryParams()[static::$config->get('FiltersKey')] ?? '');
-        $sort = Parser::sort($request->getQueryParams()[static::$config->get('SortKey')] ?? '');
+        $relations = Parser::relations($request->getQueryParams()[static::$config->get('relationsKey')] ?? '');
+        $filters = Parser::filters($request->getQueryParams()[static::$config->get('filtersKey')] ?? '');
+        $sort = Parser::sort($request->getQueryParams()[static::$config->get('sortKey')] ?? '');
 
         return $request->withAttribute('segments', $segments)
             ->withAttribute('relations', $relations)

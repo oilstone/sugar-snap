@@ -69,15 +69,10 @@ class Factory
             $table->name('oauth_access_tokens');
             $table->string('id')->primary();
             $table->string('client_id');
+            $table->integer('user_id');
             $table->boolean('revoked');
             $table->datetime('expires_at');
-        })->hasMany('scopes', Stitch::make(function ($table)
-        {
-            $table->name('oauth_access_token_scopes');
-            $table->integer('id')->autoIncrement()->primary();
-            $table->string('oauth_access_token_id')->references('id')->on('oauth_access_tokens');
-            $table->string('name');
-        })));
+        }));
     }
 
     /**
@@ -100,19 +95,7 @@ class Factory
      */
     public static function scopeRepository()
     {
-        return new ScopeRepository(Stitch::make(function ($table)
-        {
-            $table->name('oauth_clients');
-            $table->string('id')->primary();
-            $table->string('name');
-            $table->string('secret');
-        })->hasMany('redirects', Stitch::make(function ($table)
-        {
-            $table->name('oauth_client_redirects');
-            $table->integer('id')->autoIncrement()->primary();
-            $table->string('client_id')->references('id')->on('oauth_clients');
-            $table->string('uri');
-        })));
+        return new ScopeRepository();
     }
 
     public static function userRepository($baseRepository)

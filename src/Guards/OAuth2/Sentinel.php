@@ -2,11 +2,22 @@
 
 namespace Api\Guards\OAuth2;
 
+use Api\Guards\OAuth2\League\Exceptions\AuthException;
 use Api\Guards\OAuth2\Scopes\Collection as Scopes;
+use Api\Guards\OAuth2\Scopes\Scope;
+use Api\Pipeline\Pipeline;
+use Api\Resources\Resource;
+use League\OAuth2\Server\Exception\OAuthServerException;
+use League\OAuth2\Server\ResourceServer;
+use Psr\Http\Message\ServerRequestInterface;
 
 class Sentinel
 {
     protected $server;
+
+    protected $request;
+
+    protected $pipeline;
 
     protected $accessTokenId;
 
@@ -18,10 +29,11 @@ class Sentinel
 
     /**
      * Sentinel constructor.
-     * @param $server
-     * @param $request
+     * @param ResourceServer $server
+     * @param ServerRequestInterface $request
+     * @param Pipeline $pipeline
      */
-    public function __construct($server, $request, $pipeline)
+    public function __construct(ResourceServer $server, ServerRequestInterface $request, Pipeline $pipeline)
     {
         $this->server = $server;
         $this->request = $request;
@@ -29,8 +41,8 @@ class Sentinel
     }
 
     /**
-     * @param $pipeline
      * @return $this
+     * @throws \Exception
      */
     public function protect()
     {
@@ -50,20 +62,19 @@ class Sentinel
     protected function checkToken()
     {
         try {
-            $this->extractOauthAttributes(
+            return $this->extractOauthAttributes(
                 $this->server->validateAuthenticatedRequest($this->request)
             );
         } catch (OAuthServerException $exception) {
             throw (new AuthException())->setBaseException($exception);
         }
-
-        return $this;
     }
 
     /**
-     * @param $request
+     * @param ServerRequestInterface $request
+     * @return $this
      */
-    protected function extractOauthAttributes($request)
+    protected function extractOauthAttributes(ServerRequestInterface $request)
     {
         $this->accessTokenId = $request->getAttribute('oauth_access_token_id');
         $this->clientId = $request->getAttribute('oauth_client_id');
@@ -73,32 +84,36 @@ class Sentinel
         {
             return Scope::parse($scope);
         }, $request->getAttribute('oauth_scopes')));
+
+        return $this;
     }
 
     /**
-     * @param $pipeline
      * @return $this
+     * @throws \Exception
      */
     protected function checkPipeline()
     {
         foreach ($this->pipeline->all() as $pipe) {
-            $this->verify($pipe->getOperation(), $pipe->getResource());
+            $this->verify($pipe->getOperation(), $pipe->getResource()->getName());
         }
 
         return $this;
     }
 
     /**
-     * @param $requestRelations
+     * @param Resource $resource
+     * @param array $requestRelations
      * @return $this
+     * @throws \Exception
      */
-    protected function checkRelations($resource, $requestRelations)
+    protected function checkRelations(Resource $resource, array $requestRelations)
     {
         foreach ($requestRelations as $requestRelation) {
             $relation = $resource->getRelation($requestRelation->getName());
 
             if ($relation) {
-                $this->verify('read', $relation);
+                $this->verify('read', $relation->getName());
                 $this->checkRelations(
                     $relation->getForeignResource(),
                     $requestRelation->getRelations()
@@ -112,10 +127,11 @@ class Sentinel
     /**
      * @param string $operation
      * @param string $resource
+     * @throws \Exception
      */
-    public function verify(string $operation, $resource)
+    public function verify(string $operation, string $resource)
     {
-        if (!$this->scopes->can($operation, $resource->getName())) {
+        if ($this->scopes === null || !$this->scopes->can($operation, $resource)) {
             $this->reject();
         }
     }
@@ -125,6 +141,6 @@ class Sentinel
      */
     protected function reject()
     {
-        throw new \Exception('uh uh uh');
+        throw new \Exception('access_denied');
     }
 }

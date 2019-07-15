@@ -58,4 +58,20 @@ class Scope
     {
         return ($this->resource === $resource);
     }
+
+    /**
+     * @return string
+     */
+    public function getOperation()
+    {
+        return$this->operation;
+    }
+
+    /**
+     * @return string
+     */
+    public function getResource()
+    {
+        return $this->resource;
+    }
 }

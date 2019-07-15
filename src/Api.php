@@ -26,11 +26,6 @@ class Api
      */
     protected static $registry;
 
-    /**
-     * @var string
-     */
-    protected static $prefix = '';
-
     protected static $configs = [];
 
     protected static $request;
