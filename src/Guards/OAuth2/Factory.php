@@ -25,7 +25,10 @@ class Factory
     }
 
     /**
+     * @param $request
      * @return Authoriser
+     * @throws \Defuse\Crypto\Exception\BadFormatException
+     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
      */
     public static function authoriser($request)
     {

@@ -123,6 +123,14 @@ class Pipe
     }
 
     /**
+     * @return string
+     */
+    public function getOperation()
+    {
+        return $this->operation;
+    }
+
+    /**
      * @return array
      */
     public function getData()

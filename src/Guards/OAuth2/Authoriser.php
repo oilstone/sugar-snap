@@ -21,11 +21,10 @@ class Authoriser
     }
 
     /**
-     * @param ServerRequestInterface $request
      * @param ResponseInterface $response
      * @return ResponseInterface
      */
-    public function formatResponse(ResponseInterface $response): ResponseInterface
+    public function authoriseAndFormatResponse(ResponseInterface $response): ResponseInterface
     {
         try {
             return $this->server->respondToAccessTokenRequest($this->request, $response);

@@ -91,8 +91,8 @@ class Api
         static::try(function ()
         {
             static::respond(
-                GuardFactory::authoriser(static::$request)
-                    ->formatResponse(ResponseFactory::response())
+                GuardFactory::authoriser(RequestFactory::request())
+                    ->authoriseAndFormatResponse(ResponseFactory::response())
             );
         });
     }
@@ -104,8 +104,9 @@ class Api
     {
         static::try(function ()
         {
-            $pipeline = (new Pipeline(static::$request))->assemble();
-            GuardFactory::sentinel(static::$request, $pipeline)->protect();
+            $request = RequestFactory::resource();
+            $pipeline = (new Pipeline($request))->assemble();
+            GuardFactory::sentinel($request, $pipeline)->protect();
 
             static::respond(ResponseFactory::json(
                 $pipeline->call()->last()->getData()
@@ -161,7 +162,6 @@ class Api
      */
     public static function boot()
     {
-        static::$request = RequestFactory::request();
         static::addConfig(RequestFactory::config());
         static::addConfig(GuardFactory::config());
     }

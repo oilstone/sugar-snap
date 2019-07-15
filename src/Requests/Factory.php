@@ -17,7 +17,7 @@ class Factory
     {
         if (!static::$config)
         {
-            return (new Config('request'))->accepts(
+            static::$config = (new Config('request'))->accepts(
                 'relationsKey',
                 'filtersKey',
                 'sortKey'
@@ -34,9 +34,9 @@ class Factory
      * @return \Psr\Http\Message\ServerRequestInterface
      * @throws \Oilstone\RsqlParser\Exceptions\InvalidQueryStringException
      */
-    public static function request()
+    public static function resource()
     {
-        $request = static::psr7ServerRequest();
+        $request = static::request();
         $segments = Parser::segments($request->getUri()->getPath());
         $relations = Parser::relations($request->getQueryParams()[static::$config->get('RelationsKey')] ?? '');
         $filters = Parser::filters($request->getQueryParams()[static::$config->get('FiltersKey')] ?? '');
@@ -51,7 +51,7 @@ class Factory
     /**
      * @return \Psr\Http\Message\ServerRequestInterface
      */
-    public static function psr7ServerRequest()
+    public static function request()
     {
         $psr17Factory = new Psr17Factory();
         return (new ServerRequestCreator($psr17Factory, $psr17Factory, $psr17Factory, $psr17Factory))->fromGlobals();

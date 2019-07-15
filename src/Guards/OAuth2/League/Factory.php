@@ -125,18 +125,20 @@ class Factory
      */
     public static function resourceServer()
     {
-        new ResourceServer(
+        return new ResourceServer(
             static::accessTokenRepository(),
             static::$config->get('publicKeyPath')
         );
     }
 
     /**
-     * @return AuthorisationServer
+     * @return AuthorizationServer
+     * @throws \Defuse\Crypto\Exception\BadFormatException
+     * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
      */
     public static function authorisationServer()
     {
-        $server = new AuthorisationServer(
+        $server = new AuthorizationServer(
             static::clientRepository(),
             static::accessTokenRepository(),
             static::scopeRepository(),
