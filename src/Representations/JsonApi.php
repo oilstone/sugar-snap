@@ -4,11 +4,11 @@ namespace Api\Representations;
 
 use Api\Representations\Contracts\Representation as RepresentationContract;
 use Api\Requests\Relation;
-use Psr\Http\Message\ServerRequestInterface;
 use Api\Support\Str;
 use Neomerx\JsonApi\Encoder\Encoder;
 use Neomerx\JsonApi\Schema\Arr as ArrSchema;
 use Neomerx\JsonApi\Wrappers\Arr;
+use Psr\Http\Message\ServerRequestInterface;
 use function utf8_encode;
 
 /**
@@ -39,10 +39,10 @@ class JsonApi extends Representation implements RepresentationContract
      */
     public function forCollection(ServerRequestInterface $request, array $collection)
     {
-        $this->encoder->withIncludedPaths($this->collapseRelations($request->getAttribute('relations')));
+        $this->encoder->withIncludedPaths($this->collapseRelations($request->getAttribute('relations') ?? []));
 
         return $this->encoder->encodeCollectionArray(
-            $request->getAttribute('segments')[count($request->getAttribute('segments')) - 1],
+            $request->getAttribute('segments')[count($request->getAttribute('segments') ?? []) - 1] ?? 'array',
             $this->prepare($collection)
         );
     }
@@ -123,10 +123,10 @@ class JsonApi extends Representation implements RepresentationContract
      */
     public function forSingleton(ServerRequestInterface $request, array $item)
     {
-        $this->encoder->withIncludedPaths(['exhibitions']);
+        $this->encoder->withIncludedPaths($this->collapseRelations($request->getAttribute('relations') ?? []));
 
         return $this->encoder->encodeSingletonArray(
-            $request->getAttribute('segments')[count($request->getAttribute('segments')) - 1],
+            $request->getAttribute('segments')[count($request->getAttribute('segments') ?? []) - 1] ?? 'array',
             $this->prepare($item)
         );
     }
