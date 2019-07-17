@@ -2,6 +2,7 @@
 
 namespace Api\Representations;
 
+use Api\Pipeline\Pipe;
 use Api\Representations\Contracts\Representation as RepresentationContract;
 use Api\Requests\Relation;
 use Api\Support\Str;
@@ -33,16 +34,17 @@ class JsonApi extends Representation implements RepresentationContract
     }
 
     /**
+     * @param Pipe $pipe
      * @param ServerRequestInterface $request
      * @param array $collection
      * @return array|mixed|string
      */
-    public function forCollection(ServerRequestInterface $request, array $collection)
+    public function forCollection(Pipe $pipe, ServerRequestInterface $request, array $collection)
     {
         $this->encoder->withIncludedPaths($this->collapseRelations($request->getAttribute('relations') ?? []));
 
         return $this->encoder->encodeCollectionArray(
-            $request->getAttribute('segments')[count($request->getAttribute('segments') ?? []) - 1] ?? 'array',
+            $pipe->getEntity()->getName(),
             $this->prepare($collection)
         );
     }
@@ -117,16 +119,17 @@ class JsonApi extends Representation implements RepresentationContract
     }
 
     /**
+     * @param Pipe $pipe
      * @param ServerRequestInterface $request
      * @param array $item
      * @return array|mixed|string
      */
-    public function forSingleton(ServerRequestInterface $request, array $item)
+    public function forSingleton(Pipe $pipe, ServerRequestInterface $request, array $item)
     {
         $this->encoder->withIncludedPaths($this->collapseRelations($request->getAttribute('relations') ?? []));
 
         return $this->encoder->encodeSingletonArray(
-            $request->getAttribute('segments')[count($request->getAttribute('segments') ?? []) - 1] ?? 'array',
+            $pipe->getEntity()->getName(),
             $this->prepare($item)
         );
     }

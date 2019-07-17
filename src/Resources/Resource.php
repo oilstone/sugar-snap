@@ -156,6 +156,7 @@ class Resource
             $name,
             function () use ($class, $name, $arguments) {
                 /** @var Relation $relation */
+                /** @noinspection PhpUndefinedMethodInspection */
                 $relation = (new $class($this))->name($name);
 
                 if (count($arguments) && $arguments[0] instanceof Closure) {
@@ -203,7 +204,7 @@ class Resource
             throw new Exception("The index endpoint is not available on the $this->name resource");
         }
 
-        return Api::getRepresentation()->forCollection($request, $this->repository->getCollection($pipe, $request));
+        return Api::getRepresentation()->forCollection($pipe, $request, $this->repository->getCollection($pipe, $request));
     }
 
     /**
@@ -218,6 +219,6 @@ class Resource
             throw new Exception("The show endpoint is not available on the $this->name resource");
         }
 
-        return Api::getRepresentation()->forSingleton($request, $this->repository->getRecord($pipe, $request));
+        return Api::getRepresentation()->forSingleton($pipe, $request, $this->repository->getRecord($pipe, $request));
     }
 }
