@@ -126,7 +126,7 @@ class JsonApi extends Representation implements RepresentationContract
         $this->encoder->withIncludedPaths(['exhibitions']);
 
         return $this->encoder->encodeSingletonArray(
-            'museums',
+            $request->getAttribute('segments')[count($request->getAttribute('segments')) - 1],
             $this->prepare($item)
         );
     }
