@@ -4,12 +4,13 @@ namespace Api\Resources;
 
 use Api\Api;
 use Api\Pipeline\Pipe;
-use Psr\Http\Message\ServerRequestInterface;
+use Api\Repositories\Contracts\Repository;
 use Api\Resources\Relations\Collection as Relations;
 use Api\Resources\Relations\HasMany;
 use Api\Resources\Relations\Relation;
 use Closure;
 use Exception;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Class Resource
@@ -18,7 +19,12 @@ use Exception;
 class Resource
 {
     /**
-     * @var
+     * @var array
+     */
+    protected const ENDPOINTS = [];
+
+    /**
+     * @var Repository
      */
     protected $repository;
 
@@ -32,8 +38,9 @@ class Resource
      */
     protected $relations;
 
-    protected const ENDPOINTS = [];
-
+    /**
+     * @var array
+     */
     protected $config = [
         'endpoints' => [
             'except' => [],
@@ -45,7 +52,7 @@ class Resource
      * Resource constructor.
      * @param $repository
      */
-    public function __construct($repository)
+    public function __construct(Repository $repository)
     {
         $this->repository = $repository;
         $this->relations = new Relations();
@@ -101,44 +108,12 @@ class Resource
     }
 
     /**
-     * @param string $name
-     * @return bool
-     */
-    public function endpointEnabled(string $name)
-    {
-        if (!in_array($name, static::ENDPOINTS)) {
-            return false;
-        }
-
-        if (count($this->config['endpoints']['only']) && !in_array($name, $this->config['endpoints']['only'])) {
-            return false;
-        }
-
-        if (in_array($name, $this->config['endpoints']['except'])) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
      * @param mixed ...$arguments
      * @return $this
      */
     public function hasMany(...$arguments)
     {
         $this->addRelation(array_merge([HasMany::class], $arguments));
-
-        return $this;
-    }
-
-    /**
-     * @param mixed ...$arguments
-     * @return $this
-     */
-    public function nest(...$arguments)
-    {
-        $this->addRelation(array_merge([Relation::class], $arguments));
 
         return $this;
     }
@@ -170,6 +145,17 @@ class Resource
                 return $relation->boot();
             }
         );
+
+        return $this;
+    }
+
+    /**
+     * @param mixed ...$arguments
+     * @return $this
+     */
+    public function nest(...$arguments)
+    {
+        $this->addRelation(array_merge([Relation::class], $arguments));
 
         return $this;
     }
@@ -208,6 +194,27 @@ class Resource
     }
 
     /**
+     * @param string $name
+     * @return bool
+     */
+    public function endpointEnabled(string $name)
+    {
+        if (!in_array($name, static::ENDPOINTS)) {
+            return false;
+        }
+
+        if (count($this->config['endpoints']['only']) && !in_array($name, $this->config['endpoints']['only'])) {
+            return false;
+        }
+
+        if (in_array($name, $this->config['endpoints']['except'])) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * @param Pipe $pipe
      * @param ServerRequestInterface $request
      * @return mixed
@@ -220,5 +227,20 @@ class Resource
         }
 
         return Api::getRepresentation()->forSingleton($pipe, $request, $this->repository->getRecord($pipe, $request));
+    }
+
+    /**
+     * @param Pipe $pipe
+     * @param ServerRequestInterface $request
+     * @return mixed
+     * @throws Exception
+     */
+    public function create(Pipe $pipe, ServerRequestInterface $request)
+    {
+        if (!$this->endpointEnabled('create')) {
+            throw new Exception("The create endpoint is not available on the $this->name resource");
+        }
+
+        return Api::getRepresentation()->forSingleton($pipe, $request, $this->repository->create($pipe, $request));
     }
 }

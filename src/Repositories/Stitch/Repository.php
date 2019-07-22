@@ -3,9 +3,12 @@
 namespace Api\Repositories\Stitch;
 
 use Api\Pipeline\Pipe;
+use Api\Repositories\Contracts\Repository as RepositoryContract;
 use Api\Requests\Relation as RequestRelation;
 use Api\Resources\Relations\Relation as ResourceRelation;
 use Api\Resources\Resource;
+use Exception;
+use Oilstone\RsqlParser\Condition;
 use Oilstone\RsqlParser\Expression;
 use Stitch\Model;
 use Stitch\Queries\Query;
@@ -15,7 +18,7 @@ use Psr\Http\Message\ServerRequestInterface;
  * Class Repository
  * @package Api\Repositories\Stitch
  */
-class Repository
+class Repository implements RepositoryContract
 {
     /**
      * @var Model
@@ -144,6 +147,7 @@ class Repository
                     $this->applyRsqlExpression($query, $constraint);
                 });
             } else {
+                /** @var Condition $constraint */
                 $query->{$method}($constraint->getColumn(), $constraint->getOperator()->toSql(), $constraint->getValue());
             }
         }
@@ -181,5 +185,17 @@ class Repository
         $this->addRelations($resourceRelation->getForeignResource(), $query, $requestRelation->getRelations());
 
         return $query;
+    }
+
+    /**
+     * @param Pipe $pipe
+     * @param ServerRequestInterface $request
+     * @return mixed
+     * @throws Exception
+     * @todo Implement create() method.
+     */
+    public function create(Pipe $pipe, ServerRequestInterface $request)
+    {
+        throw new Exception('Method not yet implemented');
     }
 }

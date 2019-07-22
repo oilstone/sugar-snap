@@ -9,6 +9,9 @@ namespace Api\Resources;
  */
 class Collectable extends Resource
 {
+    /**
+     * @var array
+     */
     protected const ENDPOINTS = [
         'index',
         'show',
