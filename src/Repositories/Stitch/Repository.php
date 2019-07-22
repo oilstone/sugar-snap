@@ -44,9 +44,9 @@ class Repository implements RepositoryContract
 
     /**
      * @param Pipe $pipe
-     * @return mixed
+     * @return array
      */
-    public function getByKey(Pipe $pipe)
+    public function getByKey(Pipe $pipe): array
     {
         return $this->keyedQuery($pipe)->first()->toArray();
     }
@@ -56,7 +56,7 @@ class Repository implements RepositoryContract
      * @param ServerRequestInterface $request
      * @return array
      */
-    public function getCollection(Pipe $pipe, ServerRequestInterface $request)
+    public function getCollection(Pipe $pipe, ServerRequestInterface $request): array
     {
         $query = $this->scopedQuery($pipe);
         $this->addRelations($pipe->getResource(), $query, $request->getAttribute('relations'));
@@ -70,7 +70,7 @@ class Repository implements RepositoryContract
      * @param ServerRequestInterface $request
      * @return array
      */
-    public function getRecord(Pipe $pipe, ServerRequestInterface $request)
+    public function getRecord(Pipe $pipe, ServerRequestInterface $request): array
     {
         $query =  $this->keyedQuery($pipe);
         $this->addRelations($pipe->getResource(), $query, $request->getAttribute('relations'));
@@ -194,7 +194,7 @@ class Repository implements RepositoryContract
      * @throws Exception
      * @todo Implement create() method.
      */
-    public function create(Pipe $pipe, ServerRequestInterface $request)
+    public function create(Pipe $pipe, ServerRequestInterface $request): array
     {
         throw new Exception('Method not yet implemented');
     }

@@ -13,28 +13,28 @@ interface Repository
 {
     /**
      * @param Pipe $pipe
-     * @return mixed
+     * @return array
      */
-    public function getByKey(Pipe $pipe);
+    public function getByKey(Pipe $pipe): array;
 
     /**
      * @param Pipe $pipe
      * @param ServerRequestInterface $request
-     * @return mixed
+     * @return array
      */
-    public function getCollection(Pipe $pipe, ServerRequestInterface $request);
+    public function getCollection(Pipe $pipe, ServerRequestInterface $request): array;
 
     /**
      * @param Pipe $pipe
      * @param ServerRequestInterface $request
-     * @return mixed
+     * @return array
      */
-    public function getRecord(Pipe $pipe, ServerRequestInterface $request);
+    public function getRecord(Pipe $pipe, ServerRequestInterface $request): array;
 
     /**
      * @param Pipe $pipe
      * @param ServerRequestInterface $request
-     * @return mixed
+     * @return array
      */
-    public function create(Pipe $pipe, ServerRequestInterface $request);
+    public function create(Pipe $pipe, ServerRequestInterface $request): array;
 }
