@@ -37,4 +37,11 @@ interface Repository
      * @return array
      */
     public function create(Pipe $pipe, ServerRequestInterface $request): array;
+
+    /**
+     * @param Pipe $pipe
+     * @param ServerRequestInterface $request
+     * @return array
+     */
+    public function update(Pipe $pipe, ServerRequestInterface $request): array;
 }

@@ -32,12 +32,14 @@ class Pipe
         'POST' => 'create',
         'GET' => 'read',
         'PUT' => 'update',
+        'PATCH' => 'update',
         'DELETE' => 'delete'
     ];
 
     protected const METHOD_MAP = [
         'POST' => 'create',
         'PUT' => 'update',
+        'PATCH' => 'update',
         'DELETE' => 'destroy'
     ];
 

@@ -198,4 +198,16 @@ class Repository implements RepositoryContract
     {
         throw new Exception('Method not yet implemented');
     }
+
+    /**
+     * @param Pipe $pipe
+     * @param ServerRequestInterface $request
+     * @return mixed
+     * @throws Exception
+     * @todo Implement update() method.
+     */
+    public function update(Pipe $pipe, ServerRequestInterface $request): array
+    {
+        throw new Exception('Method not yet implemented');
+    }
 }

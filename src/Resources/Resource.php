@@ -243,4 +243,19 @@ class Resource
 
         return Api::getRepresentation()->forSingleton($pipe, $request, $this->repository->create($pipe, $request));
     }
+
+    /**
+     * @param Pipe $pipe
+     * @param ServerRequestInterface $request
+     * @return mixed
+     * @throws Exception
+     */
+    public function update(Pipe $pipe, ServerRequestInterface $request)
+    {
+        if (!$this->endpointEnabled('update')) {
+            throw new Exception("The update endpoint is not available on the $this->name resource");
+        }
+
+        return Api::getRepresentation()->forSingleton($pipe, $request, $this->repository->update($pipe, $request));
+    }
 }
