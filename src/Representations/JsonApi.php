@@ -92,7 +92,7 @@ class JsonApi extends Representation implements RepresentationContract
     protected function encodeUtf8(array $data): array
     {
         return array_map(function ($datum) {
-            return is_array($datum) ? $this->encodeUtf8($datum) : utf8_encode($datum);
+            return is_array($datum) ? $this->encodeUtf8($datum) : (is_string($datum) ? utf8_encode($datum) : $datum);
         }, $data);
     }
 
