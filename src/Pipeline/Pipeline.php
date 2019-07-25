@@ -52,12 +52,13 @@ class Pipeline
      */
     public function assemble()
     {
+        /** @var Pipe $pipe */
         $pipe = null;
 
         foreach ($this->request->getAttribute('segments') as $segment) {
             if ($pipe && !$pipe->hasKey()) {
                 if ($pipe->isCollectable()) {
-                    $pipe->setKey($segment);
+                    $pipe->setKey(urldecode($segment));
 
                     continue;
                 }
