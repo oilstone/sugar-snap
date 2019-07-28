@@ -19,24 +19,20 @@ use Exception;
 
 class Factory
 {
-    protected static $config;
+    protected $config;
 
     /**
      * @return Config
      */
     public static function config(): Config
     {
-        if (!static::$config) {
-            static::$config = (new Config('oauth'))->accepts(
-                'publicKeyPath',
-                'privateKeyPath',
-                'encryptionKey',
-                'grants',
-                'userRepository'
-            );
-        }
-
-        return static::$config;
+        return (new Config())->accepts(
+            'publicKeyPath',
+            'privateKeyPath',
+            'encryptionKey',
+            'grants',
+            'userRepository'
+        );
     }
 
     /**

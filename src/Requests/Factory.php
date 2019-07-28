@@ -3,49 +3,73 @@
 namespace Api\Requests;
 
 use Api\Config\Config;
+use Psr\Http\Message\ServerRequestInterface;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7Server\ServerRequestCreator;
 
 class Factory
 {
-    protected static $config;
+    protected $config;
+
+    protected $request;
+
+    /**
+     * Factory constructor.
+     * @param Config $config
+     * @param ServerRequestInterface $request
+     */
+    public function __construct(Config $config, ServerRequestInterface $request)
+    {
+        $this->config = $config;
+        $this->request = $request;
+    }
+
+    /**
+     * @param Config $config
+     * @param null|ServerRequestInterface $request
+     * @return static
+     */
+    public static function instance(Config $config, ?ServerRequestInterface $request = null)
+    {
+        return new static($config, $request ?: static::request());
+    }
 
     /**
      * @return Config
      */
     public static function config(): Config
     {
-        if (!static::$config)
-        {
-            static::$config = (new Config('request'))->accepts(
-                'relationsKey',
-                'filtersKey',
-                'sortKey'
-            )
-                ->relationsKey('include')
-                ->filtersKey('filter')
-                ->sortKey('sort');
-        }
-
-        return static::$config;
+        return (new Config())->accepts(
+            'relationsKey',
+            'filtersKey',
+            'sortKey'
+        )
+            ->relationsKey('include')
+            ->filtersKey('filter')
+            ->sortKey('sort');
     }
 
     /**
      * @return \Psr\Http\Message\ServerRequestInterface
      * @throws \Oilstone\RsqlParser\Exceptions\InvalidQueryStringException
      */
-    public static function resource()
+    public function resource()
     {
-        $request = static::request();
-        $segments = Parser::segments($request->getUri()->getPath());
-        $relations = Parser::relations($request->getQueryParams()[static::$config->get('relationsKey')] ?? '');
-        $filters = Parser::filters($request->getQueryParams()[static::$config->get('filtersKey')] ?? '');
-        $sort = Parser::sort($request->getQueryParams()[static::$config->get('sortKey')] ?? '');
+        $queryParams = $this->request->getQueryParams();
 
-        return $request->withAttribute('segments', $segments)
-            ->withAttribute('relations', $relations)
-            ->withAttribute('filters', $filters)
-            ->withAttribute('sort', $sort);
+        return $this->request->withAttribute(
+            'segments',
+            Parser::segments($this->request->getUri()->getPath())
+        )->withAttribute(
+            'relations',
+            Parser::relations($queryParams[$this->config->get('relationsKey')] ?? '')
+        )->withAttribute(
+            'filters',
+            Parser::filters($queryParams[$this->config->get('filtersKey')] ?? '')
+        )->withAttribute(
+            'sort',
+            Parser::sort($queryParams[$this->config->get('sortKey')] ?? '')
+        );
     }
 
     /**
@@ -54,6 +78,12 @@ class Factory
     public static function request()
     {
         $psr17Factory = new Psr17Factory();
-        return (new ServerRequestCreator($psr17Factory, $psr17Factory, $psr17Factory, $psr17Factory))->fromGlobals();
+
+        return (new ServerRequestCreator(
+            $psr17Factory,
+            $psr17Factory,
+            $psr17Factory,
+            $psr17Factory
+        ))->fromGlobals();
     }
 }

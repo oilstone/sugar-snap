@@ -1,15 +1,27 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: garethhudson
- * Date: 28/07/2019
- * Time: 14:07
- */
 
 namespace Api\Resources;
 
+use Api\Registry as AbstractRegistry;
+use Api\Factory;
+use Closure;
 
-class Registry
+
+class Registry extends AbstractRegistry
 {
+    /**
+     * @param string $name
+     * @return mixed
+     */
+    public function resolve(string $name)
+    {
+        $item = $this->items[$name];
 
+        if ($item instanceof Closure) {
+            $item = $item(Factory::class)->name($name);
+            $this->items[$name] = $item;
+        }
+
+        return $item;
+    }
 }

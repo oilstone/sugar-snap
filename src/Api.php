@@ -4,12 +4,11 @@ namespace Api;
 
 use Api\Config\Config;
 use Api\Pipeline\Pipeline;
-use Api\Representations\Contracts\Representation as RepresentationContract;
-use Api\Representations\Representation;
 use Api\Requests\Factory as RequestFactory;
 use Api\Responses\Factory as ResponseFactory;
 use Api\Guards\OAuth2\Factory as GuardFactory;
 use Api\Exceptions\Handler as ExceptionHandler;
+use Api\Resources\Registry as Registry;
 use Psr\Http\Message\ResponseInterface;
 use Stitch\Stitch;
 use Closure;
@@ -24,68 +23,47 @@ class Api
     /**
      * @var
      */
-    protected static $registry;
+    protected $registry;
 
-    protected static $configs = [];
+    protected $configs;
 
-    protected static $request;
+    protected $requestFactory;
 
-    /**
-     * @var RepresentationContract
-     */
-    protected static $representation;
+    protected $guardFactory;
 
-    /**
-     * @param Closure $callback
-     */
-    public static function addConnection(Closure $callback)
+    public function __construct($configs, $request = null)
     {
-        Stitch::addConnection($callback);
-    }
+        $this->configs = $configs;
+        $this->requestFactory = RequestFactory::instance($configs['request'], $request);
 
-    /**
-     * @param Config $config
-     */
-    public static function addConfig(Config $config)
-    {
-        static::$configs[$config->getName()] = $config;
-    }
-
-    /**
-     * @param string $name
-     * @return mixed
-     */
-    public static function getConfig(string $name)
-    {
-        return static::$configs[$name] ?? null;
     }
 
     /**
      * @param string $name
      * @param Closure $callback
      */
-    public static function configure(string $name, Closure $callback)
+    public function configure(string $name, Closure $callback)
     {
-        $callback(static::$configs[$name]);
+        $this->configs->configure($name, $callback);
     }
 
     /**
      * @param string $name
      * @param Closure $callback
      */
-    public static function register(string $name, Closure $callback)
+    public function register(string $name, Closure $callback)
     {
-        Registry::add($name, $callback);
+        $this->registry->bind($name, $callback);
     }
 
     /**
      *
      */
-    public static function authorise()
+    public function authorise()
     {
-        static::try(function ()
+        $this->try(function ()
         {
-            static::respond(
+            $this->respond(
                 GuardFactory::authoriser(RequestFactory::request())
                     ->authoriseAndFormatResponse(ResponseFactory::response())
             );
@@ -95,9 +73,9 @@ class Api
     /**
      *
      */
-    public static function run(): void
+    public function run(): void
     {
-        static::try(function ()
+        $this->try(function ()
         {
             $request = RequestFactory::resource();
             $pipeline = (new Pipeline($request))->assemble();
@@ -112,7 +90,7 @@ class Api
     /**
      * @param Closure $callback
      */
-    protected static function try(Closure $callback)
+    protected function try(Closure $callback)
     {
         try {
             $callback();
@@ -127,37 +105,28 @@ class Api
     /**
      * @param ResponseInterface $response
      */
-    public static function respond(ResponseInterface $response)
+    public function respond(ResponseInterface $response)
     {
         ResponseFactory::emitter()->emit($response);
     }
 
-    /**
-     * @return RepresentationContract
-     */
-    public static function getRepresentation(): RepresentationContract
-    {
-        return static::$representation ?: new Representation();
-    }
-
-    /**
-     * @param RepresentationContract|string $representation
-     */
-    public static function setRepresentation($representation): void
-    {
-        if (is_string($representation)) {
-            $representation = new $representation;
-        }
-
-        static::$representation = $representation;
-    }
-
-    /**
-     *
-     */
-    public static function boot()
-    {
-        static::addConfig(RequestFactory::config());
-        static::addConfig(GuardFactory::config());
-    }
+//    /**
+//     * @return RepresentationContract
+//     */
+//    public static function getRepresentation(): RepresentationContract
+//    {
+//        return static::$representation ?: new Representation();
+//    }
+//
+//    /**
+//     * @param RepresentationContract|string $representation
+//     */
+//    public static function setRepresentation($representation): void
+//    {
+//        if (is_string($representation)) {
+//            $representation = new $representation;
+//        }
+//
+//        static::$representation = $representation;
+//    }
 }

@@ -12,21 +12,14 @@ class Config
 
     protected $values = [];
 
-    /**
-     * Config constructor.
-     * @param string $name
-     */
-    public function __construct(string $name)
-    {
-        $this->name = $name;
-    }
+    protected $parent;
 
     /**
      * @return mixed
      */
     public function getName()
     {
-        return $this->name;
+        return $this->name ? $this->name : $this->parent ? $this->parent->getName() : '';
     }
 
     /**
@@ -36,6 +29,17 @@ class Config
     public function accepts(...$arguments)
     {
         $this->accepts = array_unique(array_merge($this->accepts, $arguments));
+
+        return $this;
+    }
+
+    /**
+     * @param Config $config
+     * @return $this
+     */
+    public function inherit(Config $config)
+    {
+        $this->parent = $config;
 
         return $this;
     }
@@ -60,7 +64,9 @@ class Config
      */
     public function get(string $key)
     {
-        $value = $this->values[$key] ?? null;
+        $value = array_key_exists($key, $this->values)
+            ? $this->values[$key]
+            : $this->parent ? $this->parent->get($key) : null;
 
         if ($value instanceof Closure) {
             $value = $value();
@@ -77,6 +83,6 @@ class Config
      */
     public function __call($name, $arguments)
     {
-        return $this->set($name, $arguments[0]);
+        return $this->set($name, $arguments ? $arguments[0] : true);
     }
 }

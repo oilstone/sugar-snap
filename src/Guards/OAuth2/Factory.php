@@ -15,6 +15,20 @@ class Factory
         return LeagueFactory::config();
     }
 
+    /**
+     * @param Config $config
+     * @return LeagueFactory
+     */
+    public static function instance(Config $config)
+    {
+        return new LeagueFactory($config);
+    }
+
+    /**
+     * @param $request
+     * @param $pipeline
+     * @return Sentinel
+     */
     public static function sentinel($request, $pipeline)
     {
         return new Sentinel(
