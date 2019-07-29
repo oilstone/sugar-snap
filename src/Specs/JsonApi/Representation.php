@@ -1,9 +1,9 @@
 <?php
 
-namespace Api\Representations;
+namespace Api\specs\JsonApi;
 
 use Api\Pipeline\Pipe;
-use Api\Representations\Contracts\Representation as RepresentationContract;
+use Api\Specs\Contracts\Representation as RepresentationContract;
 use Api\Requests\Relation;
 use Api\Support\Str;
 use Neomerx\JsonApi\Encoder\Encoder;
@@ -16,7 +16,7 @@ use function utf8_encode;
  * Class JsonApi
  * @package Api\Representations
  */
-class JsonApi extends Representation implements RepresentationContract
+class Representation implements RepresentationContract
 {
     /**
      * @var Encoder

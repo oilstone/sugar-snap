@@ -2,7 +2,8 @@
 
 namespace Api;
 
-use Api\Config\Config;
+use Api\Config\Store as Config;
+use Api\Specs\Factory as SpecFactory;
 use Api\Requests\Factory as RequestFactory;
 use Api\Guards\OAuth2\Factory as GuardFactory;
 use Psr\Http\Message\ServerRequestInterface;
@@ -15,7 +16,7 @@ use Closure;
  */
 class Package
 {
-    protected static $configs;
+    protected static $config;
 
     /**
      * @param Closure $callback
@@ -28,14 +29,15 @@ class Package
     /**
      * @return mixed
      */
-    protected static function configs()
+    protected static function config()
     {
-        if (!static::$configs) {
-            static::$configs = (new Configs())->put('request', RequestFactory::config())
+        if (!static::$config) {
+            static::$config = (new Config())->put('spec', SpecFactory::config())
+                ->put('request', RequestFactory::config())
                 ->put('guard', GuardFactory::config());
         }
 
-        return static::$configs;
+        return static::$config;
     }
 
     /**
@@ -44,18 +46,22 @@ class Package
      */
     public static function configure(string $name, Closure $callback)
     {
-        static::configs()->configure($name, $callback);
+        static::config()->configure($name, $callback);
     }
 
     /**
      * @param null|ServerRequestInterface $request
      * @return Api
+     * @throws \Exception
      */
     public static function make(?ServerRequestInterface $request = null)
     {
-        return new Api(
-            (new Configs())->inherit(static::configs()),
-            $request
-        );
+        $factory = new Factory(static::config()->child());
+
+        if ($request) {
+            $factory->request()->setBaseRequest($request);
+        }
+
+        return new Api($factory);
     }
 }

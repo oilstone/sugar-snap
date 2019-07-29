@@ -2,15 +2,10 @@
 
 namespace Api;
 
-use Api\Config\Config;
 use Api\Pipeline\Pipeline;
-use Api\Requests\Factory as RequestFactory;
-use Api\Responses\Factory as ResponseFactory;
-use Api\Guards\OAuth2\Factory as GuardFactory;
 use Api\Exceptions\Handler as ExceptionHandler;
 use Api\Resources\Registry as Registry;
 use Psr\Http\Message\ResponseInterface;
-use Stitch\Stitch;
 use Closure;
 use Exception;
 
@@ -20,31 +15,29 @@ use Exception;
  */
 class Api
 {
+    protected $factory;
+
     /**
      * @var
      */
     protected $registry;
 
-    protected $configs;
-
-    protected $requestFactory;
-
-    protected $guardFactory;
-
-    public function __construct($configs, $request = null)
+    public function __construct(Factory $factory)
     {
-        $this->configs = $configs;
-        $this->requestFactory = RequestFactory::instance($configs['request'], $request);
-
+        $this->factory = $factory;
+        $this->registry = new Registry();
     }
 
     /**
      * @param string $name
      * @param Closure $callback
+     * @return $this
      */
     public function configure(string $name, Closure $callback)
     {
-        $this->configs->configure($name, $callback);
+        $this->factory->configure($name, $callback);
+
+        return $this;
     }
 
     /**
@@ -64,8 +57,8 @@ class Api
         $this->try(function ()
         {
             $this->respond(
-                GuardFactory::authoriser(RequestFactory::request())
-                    ->authoriseAndFormatResponse(ResponseFactory::response())
+                $this->factory->guard()->authoriser($this->factory->request()->base())
+                    ->authoriseAndFormatResponse($this->factory->response()->base())
             );
         });
     }
@@ -77,11 +70,11 @@ class Api
     {
         $this->try(function ()
         {
-            $request = RequestFactory::resource();
+            $request = $this->factory->request()->query();
             $pipeline = (new Pipeline($request))->assemble();
-            GuardFactory::sentinel($request, $pipeline)->protect();
+            $this->factory->guard()->sentinel($request, $pipeline)->protect();
 
-            static::respond(ResponseFactory::json(
+            static::respond($this->factory->response()->json(
                 $pipeline->call()->last()->getData()
             ));
         });
@@ -96,8 +89,8 @@ class Api
             $callback();
         } catch (Exception $e) {
             (new ExceptionHandler(
-                ResponseFactory::json(),
-                ResponseFactory::emitter()
+                $this->factory->response()->json(),
+                $this->factory->response()->emitter()
             ))->handle($e);
         }
     }
@@ -107,7 +100,7 @@ class Api
      */
     public function respond(ResponseInterface $response)
     {
-        ResponseFactory::emitter()->emit($response);
+        $this->factory->response()->emitter()->emit($response);
     }
 
 //    /**

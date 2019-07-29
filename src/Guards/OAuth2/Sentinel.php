@@ -129,7 +129,7 @@ class Sentinel
      * @param string $resource
      * @throws \Exception
      */
-    public function verify(string $operation, string $resource)
+    protected function verify(string $operation, string $resource)
     {
         if ($this->scopes === null || !$this->scopes->can($operation, $resource)) {
             $this->reject();

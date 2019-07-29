@@ -93,6 +93,15 @@ class Collection implements IteratorAggregate, ArrayAccess, Countable
     }
 
     /**
+     * @param $key
+     * @return bool
+     */
+    public function has($key)
+    {
+        return $this->offsetExists($key);
+    }
+
+    /**
      * Get an item at a given offset.
      *
      * @param mixed $key
@@ -101,6 +110,15 @@ class Collection implements IteratorAggregate, ArrayAccess, Countable
     public function offsetGet($key)
     {
         return isset($this->items[$key]) ? $this->items[$key] : null;
+    }
+
+    /**
+     * @param $name
+     * @return mixed|null
+     */
+    public function get($name)
+    {
+        return $this->offsetGet($name);
     }
 
     /**

@@ -4,23 +4,13 @@ namespace Api\Config;
 
 use Closure;
 
-class Config
+class Service
 {
-    protected $name;
-
     protected $accepts = [];
 
     protected $values = [];
 
     protected $parent;
-
-    /**
-     * @return mixed
-     */
-    public function getName()
-    {
-        return $this->name ? $this->name : $this->parent ? $this->parent->getName() : '';
-    }
 
     /**
      * @param array ...$arguments
@@ -34,14 +24,22 @@ class Config
     }
 
     /**
-     * @param Config $config
+     * @param Service $config
      * @return $this
      */
-    public function inherit(Config $config)
+    public function inherit(Service $config)
     {
         $this->parent = $config;
 
         return $this;
+    }
+
+    /**
+     * @return Service
+     */
+    public function child()
+    {
+        return (new static())->inherit($this);
     }
 
     /**
@@ -79,7 +77,7 @@ class Config
     /**
      * @param $name
      * @param $arguments
-     * @return Config
+     * @return Service
      */
     public function __call($name, $arguments)
     {
