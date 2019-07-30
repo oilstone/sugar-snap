@@ -53,39 +53,44 @@ class Api
      */
     public function authorise()
     {
-        $this->try(function ()
+        $this->emitResponse($this->generateAuthorisationResponse());
+    }
+
+    /**
+     * @return mixed
+     */
+    public function generateAuthorisationResponse()
+    {
+        return $this->try(function ()
         {
-            $this->respond(
-                $this->factory->guard()->authoriser($this->factory->request()->base())
-                    ->authoriseAndFormatResponse($this->factory->response()->base())
-            );
+            return $this->factory->guard()->authoriser($this->factory->request()->base())
+                ->authoriseAndFormatResponse($this->factory->response()->base());
         });
     }
 
     /**
-     *
+     * @return mixed
      */
-    public function run(): void
+    public function run()
     {
-        $this->try(function ()
+        return $this->try(function ()
         {
             $request = $this->factory->request()->query();
             $pipeline = (new Pipeline($request, $this->resources))->assemble();
             $this->factory->guard()->sentinel($request, $pipeline)->protect();
 
-            static::respond($this->factory->response()->json(
-                $pipeline->call()->last()->getData()
-            ));
+            return $pipeline->call()->last()->getData();
         });
     }
 
     /**
      * @param Closure $callback
+     * @return mixed
      */
     protected function try(Closure $callback)
     {
         try {
-            $callback();
+            return $callback();
         } catch (Exception $e) {
             (new ExceptionHandler(
                 $this->factory->response()->json(),
@@ -97,8 +102,26 @@ class Api
     /**
      * @param ResponseInterface $response
      */
-    public function respond(ResponseInterface $response)
+    protected function emitResponse(ResponseInterface $response)
     {
         $this->factory->response()->emitter()->emit($response);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function generateResponse()
+    {
+        return $this->factory->response()->json(
+            $this->run()
+        );
+    }
+
+    /**
+     *
+     */
+    public function respond()
+    {
+        $this->emitResponse($this->generateResponse());
     }
 }
