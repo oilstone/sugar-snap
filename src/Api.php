@@ -2,16 +2,9 @@
 
 namespace Api;
 
-use Api\Config\Config;
 use Api\Pipeline\Pipeline;
-use Api\Representations\Contracts\Representation as RepresentationContract;
-use Api\Representations\Representation;
-use Api\Requests\Factory as RequestFactory;
-use Api\Responses\Factory as ResponseFactory;
-use Api\Guards\OAuth2\Factory as GuardFactory;
 use Api\Exceptions\Handler as ExceptionHandler;
 use Psr\Http\Message\ResponseInterface;
-use Stitch\Stitch;
 use Closure;
 use Exception;
 
@@ -21,73 +14,50 @@ use Exception;
  */
 class Api
 {
+    protected $factory;
+
     /**
      * @var
      */
-    protected static $registry;
+    protected $resources;
 
-    protected static $configs = [];
-
-    protected static $request;
-
-    /**
-     * @var RepresentationContract
-     */
-    protected static $representation;
-
-    /**
-     * @param Closure $callback
-     */
-    public static function addConnection(Closure $callback)
+    public function __construct(Factory $factory)
     {
-        Stitch::addConnection($callback);
-    }
-
-    /**
-     * @param Config $config
-     */
-    public static function addConfig(Config $config)
-    {
-        static::$configs[$config->getName()] = $config;
+        $this->factory = $factory;
+        $this->resources = $factory->resource()->registry();
     }
 
     /**
      * @param string $name
-     * @return mixed
+     * @param Closure $callback
+     * @return $this
      */
-    public static function getConfig(string $name)
+    public function configure(string $name, Closure $callback)
     {
-        return static::$configs[$name] ?? null;
+        $this->factory->configure($name, $callback);
+
+        return $this;
     }
 
     /**
      * @param string $name
      * @param Closure $callback
      */
-    public static function configure(string $name, Closure $callback)
+    public function register(string $name, Closure $callback)
     {
-        $callback(static::$configs[$name]);
-    }
-
-    /**
-     * @param string $name
-     * @param Closure $callback
-     */
-    public static function register(string $name, Closure $callback)
-    {
-        Registry::add($name, $callback);
+        $this->resources->bind($name, $callback);
     }
 
     /**
      *
      */
-    public static function authorise()
+    public function authorise()
     {
-        static::try(function ()
+        $this->try(function ()
         {
-            static::respond(
-                GuardFactory::authoriser(RequestFactory::request())
-                    ->authoriseAndFormatResponse(ResponseFactory::response())
+            $this->respond(
+                $this->factory->guard()->authoriser($this->factory->request()->base())
+                    ->authoriseAndFormatResponse($this->factory->response()->base())
             );
         });
     }
@@ -95,15 +65,15 @@ class Api
     /**
      *
      */
-    public static function run(): void
+    public function run(): void
     {
-        static::try(function ()
+        $this->try(function ()
         {
-            $request = RequestFactory::resource();
-            $pipeline = (new Pipeline($request))->assemble();
-            GuardFactory::sentinel($request, $pipeline)->protect();
+            $request = $this->factory->request()->query();
+            $pipeline = (new Pipeline($request, $this->resources))->assemble();
+            $this->factory->guard()->sentinel($request, $pipeline)->protect();
 
-            static::respond(ResponseFactory::json(
+            static::respond($this->factory->response()->json(
                 $pipeline->call()->last()->getData()
             ));
         });
@@ -112,14 +82,14 @@ class Api
     /**
      * @param Closure $callback
      */
-    protected static function try(Closure $callback)
+    protected function try(Closure $callback)
     {
         try {
             $callback();
         } catch (Exception $e) {
             (new ExceptionHandler(
-                ResponseFactory::json(),
-                ResponseFactory::emitter()
+                $this->factory->response()->json(),
+                $this->factory->response()->emitter()
             ))->handle($e);
         }
     }
@@ -127,37 +97,8 @@ class Api
     /**
      * @param ResponseInterface $response
      */
-    public static function respond(ResponseInterface $response)
+    public function respond(ResponseInterface $response)
     {
-        ResponseFactory::emitter()->emit($response);
-    }
-
-    /**
-     * @return RepresentationContract
-     */
-    public static function getRepresentation(): RepresentationContract
-    {
-        return static::$representation ?: new Representation();
-    }
-
-    /**
-     * @param RepresentationContract|string $representation
-     */
-    public static function setRepresentation($representation): void
-    {
-        if (is_string($representation)) {
-            $representation = new $representation;
-        }
-
-        static::$representation = $representation;
-    }
-
-    /**
-     *
-     */
-    public static function boot()
-    {
-        static::addConfig(RequestFactory::config());
-        static::addConfig(GuardFactory::config());
+        $this->factory->response()->emitter()->emit($response);
     }
 }

@@ -2,7 +2,7 @@
 
 namespace Api\Pipeline;
 
-use Api\Registry;
+use Api\Resources\Registry;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
@@ -13,6 +13,8 @@ class Pipeline
 {
     protected $request;
 
+    protected $resources;
+
     /**
      * @var array
      */
@@ -21,10 +23,12 @@ class Pipeline
     /**
      * Pipeline constructor.
      * @param ServerRequestInterface $request
+     * @param Registry $resources
      */
-    public function __construct(ServerRequestInterface $request)
+    public function __construct(ServerRequestInterface $request, Registry $resources)
     {
         $this->request = $request;
+        $this->resources = $resources;
     }
 
     /**
@@ -69,7 +73,7 @@ class Pipeline
             if ($penultimate = $this->penultimate()) {
                 $pipe->setEntity($penultimate->getResource()->getRelation($segment))->scope($penultimate);
             } else {
-                $pipe->setEntity(Registry::get($segment));
+                $pipe->setEntity($this->resources->get($segment));
             }
         }
 

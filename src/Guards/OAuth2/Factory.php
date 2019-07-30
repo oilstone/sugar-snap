@@ -3,22 +3,34 @@
 namespace Api\Guards\OAuth2;
 
 use Api\Guards\OAuth2\League\Factory as LeagueFactory;
-use Api\Config\Config;
+use Api\Config\Service;
 
 class Factory
 {
+    protected $leagueFactory;
+
+    public function __construct(Service $config)
+    {
+        $this->leagueFactory = new LeagueFactory($config);
+    }
+
     /**
-     * @return Config
+     * @return Service
      */
-    public static function config(): Config
+    public static function config()
     {
         return LeagueFactory::config();
     }
 
-    public static function sentinel($request, $pipeline)
+    /**
+     * @param $request
+     * @param $pipeline
+     * @return Sentinel
+     */
+    public function sentinel($request, $pipeline)
     {
         return new Sentinel(
-            LeagueFactory::resourceServer(),
+            $this->leagueFactory->resourceServer(),
             $request,
             $pipeline
         );
@@ -30,10 +42,10 @@ class Factory
      * @throws \Defuse\Crypto\Exception\BadFormatException
      * @throws \Defuse\Crypto\Exception\EnvironmentIsBrokenException
      */
-    public static function authoriser($request)
+    public function authoriser($request)
     {
         return new Authoriser(
-            LeagueFactory::authorisationServer(),
+            $this->leagueFactory->authorisationServer(),
             $request
         );
     }

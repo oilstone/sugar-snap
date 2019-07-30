@@ -8,53 +8,48 @@ use Closure;
  * Class Registry
  * @package Api
  */
-class Registry
+abstract class Registry
 {
     /**
+     * The items contained in the collection.
+     *
      * @var array
      */
-    protected static $items = [];
+    protected $items = [];
+
+    /**
+     * @param string $key
+     * @param $value
+     * @return $this
+     */
+    public function put(string $key, $value)
+    {
+        $this->items[$key] = $value;
+
+        return $this;
+    }
 
     /**
      * @param string $name
      * @param Closure $callback
      */
-    public static function add(string $name, Closure $callback)
+    public function bind(string $name, Closure $callback)
     {
-        static::$items[$name] = $callback;
+        $this->items[$name] = $callback;
     }
 
     /**
      * @param $name
      * @return mixed|null
      */
-    public static function get($name)
+    public function get($name)
     {
-        return static::has($name) ? static::resolve($name) : null;
-    }
-
-    /**
-     * @param string $name
-     * @return bool
-     */
-    public static function has(string $name)
-    {
-        return array_key_exists($name, static::$items);
+        return array_key_exists($name, $this->items) ? $this->resolve($name) : null;
     }
 
     /**
      * @param string $name
      * @return mixed
      */
-    public static function resolve(string $name)
-    {
-        $item = static::$items[$name];
-
-        if ($item instanceof Closure) {
-            $item = $item(Factory::class)->name($name);
-            static::$items[$name] = $item;
-        }
-
-        return $item;
-    }
+    abstract public function resolve(string $name);
 }
