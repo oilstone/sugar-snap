@@ -4,8 +4,7 @@ namespace Api;
 
 use Api\Config\Store as Config;
 use Api\Specs\Factory as SpecFactory;
-use Api\Requests\Factory as RequestFactory;
-use Api\Guards\OAuth2\Factory as GuardFactory;
+use Api\Guards\Factory as GuardFactory;
 use Psr\Http\Message\ServerRequestInterface;
 use Stitch\Stitch;
 use Closure;
@@ -32,8 +31,7 @@ class Package
     protected static function config()
     {
         if (!static::$config) {
-            static::$config = (new Config())->put('spec', SpecFactory::config())
-                ->put('request', RequestFactory::config())
+            static::$config = (new Config())->put('specification', SpecFactory::config())
                 ->put('guard', GuardFactory::config());
         }
 

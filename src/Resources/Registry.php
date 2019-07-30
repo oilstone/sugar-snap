@@ -6,9 +6,17 @@ use Api\Registry as AbstractRegistry;
 use Api\Factory;
 use Closure;
 
-
 class Registry extends AbstractRegistry
 {
+    protected $factory;
+
+    public function __construct(Factory $factory)
+    {
+        $this->factory = $factory;
+
+        return $this;
+    }
+
     /**
      * @param string $name
      * @return mixed
@@ -18,7 +26,7 @@ class Registry extends AbstractRegistry
         $item = $this->items[$name];
 
         if ($item instanceof Closure) {
-            $item = $item(Factory::class)->name($name);
+            $item = $item($this->factory)->name($name);
             $this->items[$name] = $item;
         }
 

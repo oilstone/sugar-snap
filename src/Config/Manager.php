@@ -34,13 +34,22 @@ class Manager
 
     /**
      * @param string $name
+     * @return bool
+     */
+    public function hasService(string $name)
+    {
+        return $this->services->has($name);
+    }
+
+    /**
+     * @param string $name
      * @return mixed|null
      */
     public function getService(string $name)
     {
-        return $this->services->has($name)
+        return $this->hasService($name)
             ? $this->services->get($name)
-            : $this->parent ? $this->parent->get($name) : null;
+            : ($this->parent ? $this->parent->getService($name) : null);
     }
 
     /**
@@ -49,7 +58,7 @@ class Manager
      */
     public function use(string $name)
     {
-        if ($this->services->has($name)) {
+        if ($this->hasService($name) || ($this->parent && $this->parent->hasService($name))) {
             $this->enabled = $name;
         }
 
@@ -61,7 +70,7 @@ class Manager
      */
     public function getEnabled()
     {
-        return $this->enabled ? $this->enabled : $this->parent ? $this->parent->enabled() : null;
+        return $this->enabled ? $this->enabled : ($this->parent ? $this->parent->getEnabled() : null);
     }
 
     /**
@@ -116,10 +125,8 @@ class Manager
         if ($this->services->has($enabled)) {
             $service = $this->services->get($enabled);
         } else {
-            $service = $this->services->put(
-                $enabled,
-                $this->parent->getEnabledService()->child()
-            );
+            $service = $this->parent->getEnabledService()->child();
+            $this->services->put($enabled, $service);
         }
 
         $service->{$name}(...$arguments);

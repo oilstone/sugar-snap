@@ -4,7 +4,6 @@ namespace Api;
 
 use Api\Pipeline\Pipeline;
 use Api\Exceptions\Handler as ExceptionHandler;
-use Api\Resources\Registry as Registry;
 use Psr\Http\Message\ResponseInterface;
 use Closure;
 use Exception;
@@ -20,12 +19,12 @@ class Api
     /**
      * @var
      */
-    protected $registry;
+    protected $resources;
 
     public function __construct(Factory $factory)
     {
         $this->factory = $factory;
-        $this->registry = new Registry();
+        $this->resources = $factory->resource()->registry();
     }
 
     /**
@@ -46,7 +45,7 @@ class Api
      */
     public function register(string $name, Closure $callback)
     {
-        $this->registry->bind($name, $callback);
+        $this->resources->bind($name, $callback);
     }
 
     /**
@@ -71,7 +70,7 @@ class Api
         $this->try(function ()
         {
             $request = $this->factory->request()->query();
-            $pipeline = (new Pipeline($request))->assemble();
+            $pipeline = (new Pipeline($request, $this->resources))->assemble();
             $this->factory->guard()->sentinel($request, $pipeline)->protect();
 
             static::respond($this->factory->response()->json(
@@ -102,24 +101,4 @@ class Api
     {
         $this->factory->response()->emitter()->emit($response);
     }
-
-//    /**
-//     * @return RepresentationContract
-//     */
-//    public static function getRepresentation(): RepresentationContract
-//    {
-//        return static::$representation ?: new Representation();
-//    }
-//
-//    /**
-//     * @param RepresentationContract|string $representation
-//     */
-//    public static function setRepresentation($representation): void
-//    {
-//        if (is_string($representation)) {
-//            $representation = new $representation;
-//        }
-//
-//        static::$representation = $representation;
-//    }
 }

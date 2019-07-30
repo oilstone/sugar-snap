@@ -1,13 +1,13 @@
 <?php
 
-namespace Api\Requests;
+namespace Api\Http\Requests;
 
 use Oilstone\RsqlParser\Expression;
 use Oilstone\RsqlParser\Parser as RsqlParser;
 
 /**
  * Class Relation
- * @package Api\Requests
+ * @package Api\Http\Requests
  */
 class Relation
 {

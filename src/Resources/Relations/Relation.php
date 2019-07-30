@@ -2,6 +2,7 @@
 
 namespace Api\Resources\Relations;
 
+use Api\Factory;
 use Api\Registry;
 use Api\Resources\Resource;
 use Exception;
@@ -12,6 +13,8 @@ use Exception;
  */
 class Relation
 {
+    protected $factory;
+
     /**
      * @var Resource
      */
@@ -44,10 +47,12 @@ class Relation
 
     /**
      * Relation constructor.
+     * @param Factory $factory
      * @param Resource $localResource
      */
-    public function __construct(Resource $localResource)
+    public function __construct(Factory $factory, Resource $localResource)
     {
+        $this->factory = $factory;
         $this->localResource = $localResource;
     }
 
@@ -80,7 +85,7 @@ class Relation
         }
 
         if ($this->binding) {
-            $this->foreignResource = Registry::get($this->binding);
+            $this->foreignResource = $this->factory->resource()->registry()->get($this->binding);
 
             return $this->foreignResource;
         }

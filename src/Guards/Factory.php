@@ -23,7 +23,7 @@ class Factory
     /**
      * @return Manager
      */
-    public function config()
+    public static function config()
     {
         return (new Manager())->service('OAuth2', OAuth2Factory::config())->use('OAuth2');
     }
@@ -41,18 +41,21 @@ class Factory
     }
 
     /**
+     * @param $request
+     * @param $pipeline
      * @return mixed
      */
-    public function sentinel()
+    public function sentinel($request, $pipeline)
     {
-        return $this->{$this->config->getEnabled()}()->authoriser();
+        return $this->{$this->config->getEnabled()}()->sentinel($request, $pipeline);
     }
 
     /**
+     * @param $request
      * @return mixed
      */
-    public function authoriser()
+    public function authoriser($request)
     {
-        return $this->{$this->config->getEnabled()}()->sentnel();
+        return $this->{$this->config->getEnabled()}()->authoriser($request);
     }
 }

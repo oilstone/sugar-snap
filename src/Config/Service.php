@@ -24,6 +24,15 @@ class Service
     }
 
     /**
+     * @param string $key
+     * @return bool
+     */
+    public function accepting(string $key)
+    {
+        return (in_array($key, $this->accepts) || ($this->parent && $this->parent->accepting($key)));
+    }
+
+    /**
      * @param Service $config
      * @return $this
      */
@@ -49,7 +58,7 @@ class Service
      */
     public function set(string $key, $value)
     {
-        if (in_array($key, $this->accepts)) {
+        if ($this->accepting($key)) {
             $this->values[$key] = $value;
         }
 
@@ -64,7 +73,7 @@ class Service
     {
         $value = array_key_exists($key, $this->values)
             ? $this->values[$key]
-            : $this->parent ? $this->parent->get($key) : null;
+            : ($this->parent ? $this->parent->get($key) : null);
 
         if ($value instanceof Closure) {
             $value = $value();

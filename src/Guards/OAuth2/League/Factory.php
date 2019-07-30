@@ -135,7 +135,7 @@ class Factory
             $this->accessTokenRepository(),
             $this->scopeRepository(),
             $this->config->get('privateKeyPath'),
-            Key::loadFromAsciiSafeString($this->$config->get('encryptionKey'))
+            Key::loadFromAsciiSafeString($this->config->get('encryptionKey'))
         );
 
         foreach ($this->config->get('grants') as $name) {

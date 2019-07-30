@@ -1,6 +1,6 @@
 <?php
 
-namespace Api\Responses;
+namespace Api\Http\Responses;
 
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Zend\HttpHandlerRunner\Emitter\SapiEmitter;

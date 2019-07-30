@@ -1,10 +1,10 @@
 <?php
 
-namespace Api\Requests;
+namespace Api\Http\Requests;
 
 /**
  * Class Order
- * @package Api\Requests
+ * @package Api\Http\Requests
  */
 class Order
 {

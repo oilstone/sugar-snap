@@ -2,12 +2,12 @@
 
 namespace Api;
 
-use Api\Config\Store as Configs;
-use Api\Guards\OAuth2\Factory as GuardFactory;
-use Api\Requests\Factory as RequestFactory;
-use Api\Responses\Factory as ResponseFactory;
-use Api\Repositories\Stitch\Repository as StitchRepository;
-use Api\Resources\Collectable;
+use Api\Config\Store as Config;
+use Api\Specs\Factory as SpecFactory;
+use Api\Guards\Factory as GuardFactory;
+use Api\Http\Requests\Factory as RequestFactory;
+use Api\Http\Responses\Factory as ResponseFactory;
+use Api\Resources\Factory as ResourceFactory;
 use Exception;
 use Stitch\Stitch;
 use Stitch\Model;
@@ -19,7 +19,9 @@ use Closure;
  */
 class Factory
 {
-    protected $configs;
+    protected $config;
+
+    protected $spec;
 
     protected $request;
 
@@ -27,13 +29,15 @@ class Factory
 
     protected $guard;
 
+    protected $resource;
+
     /**
      * Factory constructor.
-     * @param Configs|null $configs
+     * @param Config|null $config
      */
-    public function __construct(?Configs $configs = null)
+    public function __construct(?Config $config = null)
     {
-        $this->configs = $configs;
+        $this->config = $config;
     }
 
     /**
@@ -43,7 +47,7 @@ class Factory
      */
     public function configure(string $name, Closure $callback)
     {
-        $this->configs->configure($name, $callback);
+        $this->config->configure($name, $callback);
 
         return $this;
     }
@@ -55,11 +59,24 @@ class Factory
      */
     protected function getConfig(string $name)
     {
-        if (!$this->configs->has($name)) {
+        if (!$this->config->has($name)) {
             throw new Exception("No config found for '$name'");
         }
 
-        return $this->configs->get($name);
+        return $this->config->get($name);
+    }
+
+    /**
+     * @return SpecFactory
+     * @throws Exception
+     */
+    public function spec()
+    {
+        if (!$this->spec) {
+            $this->spec = new SpecFactory($this->getConfig('specification'));
+        }
+
+        return $this->spec;
     }
 
     /**
@@ -69,9 +86,7 @@ class Factory
     public function request()
     {
         if (!$this->request) {
-            $config = $this->getConfig();
-
-            $this->request = new RequestFactory($this->getConfig('request'));
+            $this->request = new RequestFactory($this->getConfig('specification'));
         }
 
         return $this->request;
@@ -102,19 +117,22 @@ class Factory
         return $this->guard;
     }
 
+    public function resource()
+    {
+        if (!$this->resource) {
+            $this->resource = new ResourceFactory($this);
+        }
+
+        return $this->resource;
+    }
+
     /**
      * @param $value
-     * @return Collectable
+     * @return Resources\Collectable
      */
     public function collectable($value)
     {
-        if ($value instanceof Model) {
-            return new Collectable(
-                new StitchRepository($value)
-            );
-        }
-
-        return new Collectable($value);
+        return $this->resource()->collectable($value);
     }
 
     /**
@@ -124,13 +142,5 @@ class Factory
     public function model(Closure $callback)
     {
         return Stitch::make($callback);
-    }
-
-    /**
-     * @param $value
-     */
-    public function singleton($value)
-    {
-        echo 'make singleton';
     }
 }

@@ -2,10 +2,9 @@
 
 namespace Api\Resources;
 
-use Api\Api;
+use Api\Factory;
 use Api\Pipeline\Pipe;
 use Psr\Http\Message\ServerRequestInterface;
-use Api\Resources\Relations\Collection as Relations;
 use Api\Resources\Relations\HasMany;
 use Api\Resources\Relations\Relation;
 use Closure;
@@ -17,6 +16,8 @@ use Exception;
  */
 class Resource
 {
+    protected $factory;
+
     /**
      * @var
      */
@@ -43,12 +44,14 @@ class Resource
 
     /**
      * Resource constructor.
+     * @param Factory $factory
      * @param $repository
      */
-    public function __construct($repository)
+    public function __construct(Factory $factory, $repository)
     {
+        $this->factory = $factory;
         $this->repository = $repository;
-        $this->relations = new Relations();
+        $this->relations = $factory->resource()->relations();
     }
 
     /**
@@ -152,12 +155,12 @@ class Resource
         $class = array_shift($arguments);
         $name = array_shift($arguments);
 
-        $this->relations->register(
+        $this->relations->bind(
             $name,
             function () use ($class, $name, $arguments) {
                 /** @var Relation $relation */
                 /** @noinspection PhpUndefinedMethodInspection */
-                $relation = (new $class($this))->name($name);
+                $relation = (new $class($this->factory, $this))->name($name);
 
                 if (count($arguments) && $arguments[0] instanceof Closure) {
                     $arguments[0]($relation);
@@ -204,7 +207,9 @@ class Resource
             throw new Exception("The index endpoint is not available on the $this->name resource");
         }
 
-        return Api::getRepresentation()->forCollection($pipe, $request, $this->repository->getCollection($pipe, $request));
+        return $this->factory->spec()
+            ->representation()
+            ->forCollection($pipe, $request, $this->repository->getCollection($pipe, $request));
     }
 
     /**
@@ -219,6 +224,8 @@ class Resource
             throw new Exception("The show endpoint is not available on the $this->name resource");
         }
 
-        return Api::getRepresentation()->forSingleton($pipe, $request, $this->repository->getRecord($pipe, $request));
+        return $this->factory->spec()
+            ->representation()
+            ->forSingleton($pipe, $request, $this->repository->getRecord($pipe, $request));
     }
 }

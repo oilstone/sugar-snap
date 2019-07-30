@@ -8,8 +8,27 @@ use Closure;
  * Class Registry
  * @package Api
  */
-abstract class Registry extends Collection
+abstract class Registry
 {
+    /**
+     * The items contained in the collection.
+     *
+     * @var array
+     */
+    protected $items = [];
+
+    /**
+     * @param string $key
+     * @param $value
+     * @return $this
+     */
+    public function put(string $key, $value)
+    {
+        $this->items[$key] = $value;
+
+        return $this;
+    }
+
     /**
      * @param string $name
      * @param Closure $callback
@@ -25,7 +44,7 @@ abstract class Registry extends Collection
      */
     public function get($name)
     {
-        return $this->offsetExists($name) ? $this->resolve($name) : null;
+        return array_key_exists($name, $this->items) ? $this->resolve($name) : null;
     }
 
     /**

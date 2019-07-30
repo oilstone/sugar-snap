@@ -3,7 +3,7 @@
 namespace Api\Repositories\Stitch;
 
 use Api\Pipeline\Pipe;
-use Api\Requests\Relation as RequestRelation;
+use Api\Http\Requests\Relation as RequestRelation;
 use Api\Resources\Relations\Relation as ResourceRelation;
 use Api\Resources\Resource;
 use Oilstone\RsqlParser\Expression;

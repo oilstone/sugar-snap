@@ -1,8 +1,8 @@
 <?php
 
-namespace Api\Requests;
+namespace Api\Http\Requests;
 
-use Api\Config\Service;
+use Api\Config\Manager;
 use Psr\Http\Message\ServerRequestInterface;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7Server\ServerRequestCreator;
@@ -15,9 +15,9 @@ class Factory
 
     /**
      * Factory constructor.
-     * @param Service $config
+     * @param Manager $config
      */
-    public function __construct(Service $config)
+    public function __construct(Manager $config)
     {
         $this->config = $config;
     }
@@ -31,21 +31,6 @@ class Factory
         $this->baseRequest = $request;
 
         return $this;
-    }
-
-    /**
-     * @return Service
-     */
-    public static function config(): Service
-    {
-        return (new Service())->accepts(
-            'relationsKey',
-            'filtersKey',
-            'sortKey'
-        )
-            ->relationsKey('include')
-            ->filtersKey('filter')
-            ->sortKey('sort');
     }
 
     /**
