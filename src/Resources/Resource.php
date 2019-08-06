@@ -8,6 +8,7 @@ use Api\Repositories\Contracts\Repository;
 use Psr\Http\Message\ServerRequestInterface;
 use Api\Resources\Relations\HasMany;
 use Api\Resources\Relations\Relation;
+use Api\Resources\Relations\Collection as Relations;
 use Closure;
 use Exception;
 
@@ -248,7 +249,9 @@ class Resource
             throw new Exception("The create endpoint is not available on the $this->name resource");
         }
 
-        return Api::getRepresentation()->forSingleton($pipe, $request, $this->repository->create($pipe, $request));
+        return $this->factory->spec()
+            ->representation()
+            ->forSingleton($pipe, $request, $this->repository->create($pipe, $request));
     }
 
     /**
@@ -263,6 +266,8 @@ class Resource
             throw new Exception("The update endpoint is not available on the $this->name resource");
         }
 
-        return Api::getRepresentation()->forSingleton($pipe, $request, $this->repository->update($pipe, $request));
+        return $this->factory->spec()
+            ->representation()
+            ->forSingleton($pipe, $request, $this->repository->update($pipe, $request));
     }
 }
