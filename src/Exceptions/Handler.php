@@ -36,5 +36,7 @@ class Handler
 
             $this->emitter->emit($this->response->withStatus(500));
         }
+
+        exit;
     }
 }
