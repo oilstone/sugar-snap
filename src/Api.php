@@ -92,9 +92,8 @@ class Api
         try {
             return $callback();
         } catch (Exception $e) {
-            (new ExceptionHandler(
-                $this->factory->response()->json(),
-                $this->factory->response()->emitter()
+            return (new ExceptionHandler(
+                $this->factory->response()->json()
             ))->handle($e);
         }
     }

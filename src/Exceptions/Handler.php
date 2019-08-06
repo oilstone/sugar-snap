@@ -9,34 +9,27 @@ class Handler
 {
     protected $response;
 
-    protected $emitter;
-
     /**
      * Handler constructor.
      * @param $response
-     * @param $emitter
      */
-    public function __construct($response, $emitter)
+    public function __construct($response)
     {
         $this->response = $response;
-        $this->emitter = $emitter;
     }
 
     /**
      * @param Exception $exception
+     * @return \Psr\Http\Message\ResponseInterface
      */
-    public function handle(Exception $exception): void
+    public function handle(Exception $exception)
     {
         if ($exception instanceof ApiExceptionInterface) {
-            $this->emitter->emit($exception->formatResponse($this->response));
+            return $exception->formatResponse($this->response);
         } else {
-            $this->response->getBody()->write(
+            return $this->response->getBody()->write(
                 (new Payload())->message($exception->getMessage())->toJson()
             );
-
-            $this->emitter->emit($this->response->withStatus(500));
         }
-
-        exit;
     }
 }
