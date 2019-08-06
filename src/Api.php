@@ -69,21 +69,6 @@ class Api
     }
 
     /**
-     * @return mixed
-     */
-    public function run()
-    {
-        return $this->try(function ()
-        {
-            $request = $this->factory->request()->query();
-            $pipeline = (new Pipeline($request, $this->resources))->assemble();
-            $this->factory->guard()->sentinel($request, $pipeline)->protect();
-
-            return $pipeline->call()->last()->getData();
-        });
-    }
-
-    /**
      * @param Closure $callback
      * @return mixed
      */
@@ -111,9 +96,16 @@ class Api
      */
     public function generateResponse()
     {
-        return $this->factory->response()->json(
-            $this->run()
-        );
+        return $this->try(function ()
+        {
+            $request = $this->factory->request()->query();
+            $pipeline = (new Pipeline($request, $this->resources))->assemble();
+            $this->factory->guard()->sentinel($request, $pipeline)->protect();
+
+            return $this->factory->response()->json(
+                $pipeline->call()->last()->getData()
+            );
+        });
     }
 
     /**
