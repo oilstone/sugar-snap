@@ -21,15 +21,14 @@ class Handler
     /**
      * @param Exception $exception
      * @return \Psr\Http\Message\ResponseInterface
+     * @throws Exception
      */
     public function handle(Exception $exception)
     {
         if ($exception instanceof ApiExceptionInterface) {
             return $exception->formatResponse($this->response);
         } else {
-            return $this->response->getBody()->write(
-                (new Payload())->message($exception->getMessage())->toJson()
-            );
+            throw $exception;
         }
     }
 }

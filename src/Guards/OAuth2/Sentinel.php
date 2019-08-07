@@ -2,6 +2,7 @@
 
 namespace Api\Guards\OAuth2;
 
+use Api\Exceptions\ApiException;
 use Api\Guards\OAuth2\League\Exceptions\AuthException;
 use Api\Guards\OAuth2\Scopes\Collection as Scopes;
 use Api\Guards\OAuth2\Scopes\Scope;
@@ -141,6 +142,6 @@ class Sentinel
      */
     protected function reject()
     {
-        throw new \Exception('access_denied');
+        throw new ApiException('access_denied');
     }
 }
