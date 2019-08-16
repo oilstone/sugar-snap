@@ -58,9 +58,15 @@ class Repository implements RepositoryContract
      */
     public function getCollection(Pipe $pipe, ServerRequestInterface $request): array
     {
+        $relations = $request->getAttribute('relations');
+
+        $this->addRelations($pipe->getResource(), $relations);
+
         $query = $this->scopedQuery($pipe);
-        $this->addRelations($pipe->getResource(), $query, $request->getAttribute('relations'));
-        $this->applyRsqlExpression($query, $request->getAttribute('filters'));
+
+        $this->includeRelations($query, $relations)
+            ->applyRsqlExpression($query, $request->getAttribute('filters'))
+            ->applySorting($query, $request->getAttribute('sort'));
 
         return $query->get()->toArray();
     }
@@ -72,9 +78,15 @@ class Repository implements RepositoryContract
      */
     public function getRecord(Pipe $pipe, ServerRequestInterface $request): array
     {
+        $relations = $request->getAttribute('relations');
+
+        $this->addRelations($pipe->getResource(), $relations);
+
         $query =  $this->keyedQuery($pipe);
-        $this->addRelations($pipe->getResource(), $query, $request->getAttribute('relations'));
-        $this->applyRsqlExpression($query, $request->getAttribute('filters'));
+
+        $this->includeRelations($query, $relations)
+            ->applyRsqlExpression($query, $request->getAttribute('filters'))
+            ->applySorting($query, $request->getAttribute('sort'));
 
         return $query->first()->toArray();
     }
@@ -132,10 +144,64 @@ class Repository implements RepositoryContract
     }
 
     /**
-     * @param $query
-     * @param Expression $expression
+     * @param Resource $resource
+     * @param array $relations
+     * @return $this
      */
-    public function applyRsqlExpression($query, Expression $expression)
+    public function addRelations(Resource $resource, array $relations)
+    {
+        foreach ($relations as $requestRelation) {
+            $name = $requestRelation->getName();
+            $relation = $resource->getRelation($name);
+            $foreignResource = $relation->getForeignResource();
+
+            $this->model->addRelation($name, $relation->make());
+
+            $foreignResource->getRepository()->addRelations(
+                $foreignResource,
+                $requestRelation->getRelations()
+            );
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param Query $query
+     * @param array $relations
+     * @return $this
+     */
+    public function includeRelations(Query $query, array $relations)
+    {
+        foreach ($relations as $relation) {
+            $query->with($relation->path());
+
+            $this->includeRelations($query, $relation->getRelations());
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param Query $query
+     * @param array $orders
+     * @return $this
+     */
+    protected function applySorting(Query $query, array $orders)
+    {
+        foreach ($orders as $order) {
+            $query->orderBy($order->getProperty(), $order->getDirection());
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param Query $query
+     * @param Expression $expression
+     * @return $this
+     */
+    protected function applyRsqlExpression(Query $query, Expression $expression)
     {
         foreach ($expression as $item) {
             $method = $item['operator'] == 'OR' ? 'orWhere' : 'where';
@@ -151,40 +217,8 @@ class Repository implements RepositoryContract
                 $query->{$method}($constraint->getColumn(), $constraint->getOperator()->toSql(), $constraint->getValue());
             }
         }
-    }
 
-    /**
-     * @param Resource $resource
-     * @param Query $query
-     * @param array $relations
-     */
-    protected function addRelations(Resource $resource, Query $query, array $relations)
-    {
-        foreach ($relations as $requestRelation) {
-            $name = $requestRelation->getName();
-            $relation = $resource->getRelation($name);
-
-            $query->addRelation(
-                $name,
-                $relation->getForeignResource()->getRepository()->include($relation, $requestRelation)
-            );
-        }
-    }
-
-    /**
-     * @param $resourceRelation
-     * @param $requestRelation
-     * @return mixed
-     */
-    public function include(ResourceRelation $resourceRelation, RequestRelation $requestRelation)
-    {
-        /** @noinspection PhpUndefinedMethodInspection */
-
-        $query = $resourceRelation->query();
-
-        $this->addRelations($resourceRelation->getForeignResource(), $query, $requestRelation->getRelations());
-
-        return $query;
+        return $this;
     }
 
     /**

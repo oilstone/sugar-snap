@@ -10,6 +10,7 @@ use Api\Guards\OAuth2\League\Repositories\User as UserRepository;
 use Api\Config\Service;
 use League\OAuth2\Server\Grant\ClientCredentialsGrant;
 use League\OAuth2\Server\Grant\PasswordGrant;
+use League\OAuth2\Server\Grant\RefreshTokenGrant;
 use League\OAuth2\Server\ResourceServer;
 use League\OAuth2\Server\AuthorizationServer;
 use Defuse\Crypto\Key;
@@ -147,7 +148,7 @@ class Factory
 
     /**
      * @param string $name
-     * @return ClientCredentialsGrant|PasswordGrant
+     * @return ClientCredentialsGrant|PasswordGrant|RefreshTokenGrant
      * @throws Exception
      */
     public function grant(string $name)
@@ -158,6 +159,9 @@ class Factory
 
             case 'password';
                 return $this->passwordGrant();
+
+            case 'refresh_token';
+                return $this->refreshTokenGrant();
         }
 
         throw new Exception('Unsupported grant type');
@@ -182,8 +186,32 @@ class Factory
             $this->refreshTokenRepository()
         );
 
-        $grant->setRefreshTokenTTL(new DateInterval('P1M'));
+        $grant->setRefreshTokenTTL($this->refreshTokenInterval());
 
         return $grant;
+    }
+
+    /**
+     * @return RefreshTokenGrant
+     * @throws Exception
+     */
+    public function refreshTokenGrant()
+    {
+        $grant = new RefreshTokenGrant(
+            $this->refreshTokenRepository()
+        );
+
+        $grant->setRefreshTokenTTL($this->refreshTokenInterval());
+
+        return $grant;
+    }
+
+    /**
+     * @return DateInterval
+     * @throws Exception
+     */
+    public function refreshTokenInterval()
+    {
+        return new DateInterval('P1M');
     }
 }

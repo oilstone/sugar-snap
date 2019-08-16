@@ -30,11 +30,10 @@ class HasMany extends Relation
     /**
      * @return mixed
      */
-    public function query()
+    public function make()
     {
-        $relation = (new Has($this->getLocalModel()))->foreignModel($this->getForeignmodel());
-
-        return $relation->boot()->query();
+        return (new Has($this->getLocalModel()))->foreignModel($this->getForeignmodel())
+            ->boot();
     }
 
     /**

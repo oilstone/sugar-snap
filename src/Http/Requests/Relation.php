@@ -16,6 +16,8 @@ class Relation
      */
     protected $name;
 
+    protected $ancestry;
+
     /**
      * @var
      */
@@ -27,31 +29,74 @@ class Relation
     protected $relations = [];
 
     /**
-     * @param string $input
+     * Relation constructor.
+     * @param string $name
+     */
+    public function __construct(string $name)
+    {
+        $this->name = $name;
+    }
+
+    /**
+     * @param string $path
      * @return Relation
      */
-    public static function parse(string $input)
+    public static function parse(string $path)
     {
-        $hierarchy = explode('.', $input, 2);
-        $root = array_shift($hierarchy);
-        $pieces = explode('[', rtrim($root, ']'));
+        $hierarchy = explode('.', $path);
+        $name = array_pop($hierarchy);
+        $ancestry = implode('.', $hierarchy);
+        $instance = (new static($name));
 
-        $instance = (new static())->setName($pieces[0])
-            ->setFilters(RsqlParser::parse(count($pieces) > 1 ? $pieces[1] : ''));
+        if ($ancestry) {
+            $instance->setAncestry($ancestry);
 
-        if (count($hierarchy)) {
-            $instance->addRelation(Relation::parse($hierarchy[0]));
+            return static::parse($ancestry)->addRelation($instance);
         }
 
         return $instance;
     }
 
     /**
+     * @param string $path
+     * @return $this
+     */
+    public function setAncestry(string $path)
+    {
+        $this->ancestry = $path;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getAncestry()
+    {
+        return $this->ancestry;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function path()
+    {
+        if ($this->ancestry) {
+            return "{$this->ancestry}.{$this->name}";
+        }
+
+        return $this->name;
+    }
+
+    /**
      * @param Relation $relation
+     * @return $this
      */
     public function addRelation(Relation $relation)
     {
         $this->relations[] = $relation;
+
+        return $this;
     }
 
     /**
@@ -60,17 +105,6 @@ class Relation
     public function getName(): string
     {
         return $this->name;
-    }
-
-    /**
-     * @param string $name
-     * @return $this
-     */
-    public function setName(string $name)
-    {
-        $this->name = $name;
-
-        return $this;
     }
 
     /**

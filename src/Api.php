@@ -57,7 +57,8 @@ class Api
     }
 
     /**
-     * @return mixed
+     * @return mixed|ResponseInterface
+     * @throws Exception
      */
     public function generateAuthorisationResponse()
     {
@@ -70,7 +71,8 @@ class Api
 
     /**
      * @param Closure $callback
-     * @return mixed
+     * @return mixed|ResponseInterface
+     * @throws Exception
      */
     protected function try(Closure $callback)
     {
@@ -92,7 +94,8 @@ class Api
     }
 
     /**
-     * @return mixed
+     * @return mixed|ResponseInterface
+     * @throws Exception
      */
     public function generateResponse()
     {
@@ -109,7 +112,7 @@ class Api
     }
 
     /**
-     *
+     * @throws Exception
      */
     public function respond()
     {

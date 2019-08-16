@@ -33,6 +33,7 @@ class Parser
     /**
      * @param string $input
      * @return array
+     * @throws \Oilstone\RsqlParser\Exceptions\InvalidQueryStringException
      */
     public static function relations(string $input)
     {
