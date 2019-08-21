@@ -197,11 +197,11 @@ class Repository implements RepositoryContract
     }
 
     /**
-     * @param Query $query
+     * @param $query
      * @param Expression $expression
      * @return $this
      */
-    protected function applyRsqlExpression(Query $query, Expression $expression)
+    protected function applyRsqlExpression($query, Expression $expression)
     {
         foreach ($expression as $item) {
             $method = $item['operator'] == 'OR' ? 'orWhere' : 'where';

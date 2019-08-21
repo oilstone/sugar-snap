@@ -103,7 +103,7 @@ class Api
         {
             $request = $this->factory->request()->query();
             $pipeline = (new Pipeline($request, $this->resources))->assemble();
-            $this->factory->guard()->sentinel($request, $pipeline)->protect();
+//            $this->factory->guard()->sentinel($request, $pipeline)->protect();
 
             return $this->factory->response()->json(
                 $pipeline->call()->last()->getData()
