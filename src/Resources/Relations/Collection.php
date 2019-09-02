@@ -18,7 +18,7 @@ class Collection extends Registry
     public function resolve(string $name)
     {
         if ($this->items[$name] instanceof Closure) {
-            $this->items[$name] = $this->items[$name]();
+            $this->items[$name] = $this->items[$name]();;
         }
 
         return $this->items[$name];

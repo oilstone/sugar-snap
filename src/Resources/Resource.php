@@ -5,8 +5,9 @@ namespace Api\Resources;
 use Api\Factory;
 use Api\Pipeline\Pipe;
 use Api\Repositories\Contracts\Repository;
+use Api\Resources\Relations\Stitch\BelongsTo;
+use Api\Resources\Relations\Stitch\Has;
 use Psr\Http\Message\ServerRequestInterface;
-use Api\Resources\Relations\HasMany;
 use Api\Resources\Relations\Relation;
 use Api\Resources\Relations\Collection as Relations;
 use Closure;
@@ -117,7 +118,18 @@ class Resource
      */
     public function hasMany(...$arguments)
     {
-        $this->addRelation(array_merge([HasMany::class], $arguments));
+        $this->addRelation(array_merge([Has::class], $arguments));
+
+        return $this;
+    }
+
+    /**
+     * @param mixed ...$arguments
+     * @return $this
+     */
+    public function belongsTo(...$arguments)
+    {
+        $this->addRelation(array_merge([BelongsTo::class], $arguments));
 
         return $this;
     }
