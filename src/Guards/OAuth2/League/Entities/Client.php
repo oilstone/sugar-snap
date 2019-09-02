@@ -22,7 +22,7 @@ class Client implements ClientEntityInterface
         $this->name = $record->name;
         $this->redirectUri = array_map(function ($item)
         {
-            return $item['uri'];
+            return $item->uri;
         }, $record->redirects->toArray());
     }
 }

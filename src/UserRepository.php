@@ -24,7 +24,10 @@ class UserRepository
      */
     public function getByCredentials($username, $password)
     {
-        $record = $this->model->where('username', $username)->where('password', $password)->first();
+        $record = $this->model->dehydrated()
+            ->where('username', $username)
+            ->where('password', $password)
+            ->first();
 
         return $record ? $record->id : null;
     }
