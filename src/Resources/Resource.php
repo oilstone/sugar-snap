@@ -3,6 +3,7 @@
 namespace Api\Resources;
 
 use Api\Factory;
+use Api\Guards\OAuth2\Sentinel;
 use Api\Pipeline\Pipe;
 use Api\Repositories\Contracts\Repository;
 use Api\Resources\Relations\Stitch\BelongsTo;
@@ -208,7 +209,7 @@ class Resource
 
         return $this->factory->spec()
             ->representation()
-            ->forCollection($pipe, $request, $this->repository->getCollection($pipe, $request));
+            ->forCollection($pipe->getEntity()->getName(), $request, $this->repository->getCollection($pipe, $request, $this->factory->guard()->sentinel()));
     }
 
     /**
@@ -246,7 +247,7 @@ class Resource
 
         return $this->factory->spec()
             ->representation()
-            ->forSingleton($pipe, $request, $this->repository->getRecord($pipe, $request));
+            ->forSingleton($pipe->getEntity()->getName(), $request, $this->repository->getRecord($pipe, $request, $this->factory->guard()->sentinel()));
     }
 
     /**
@@ -263,7 +264,7 @@ class Resource
 
         return $this->factory->spec()
             ->representation()
-            ->forSingleton($pipe, $request, $this->repository->create($pipe, $request));
+            ->forSingleton($pipe->getEntity()->getName(), $request, $this->repository->create($pipe, $request, $this->factory->guard()->sentinel()));
     }
 
     /**
@@ -280,6 +281,6 @@ class Resource
 
         return $this->factory->spec()
             ->representation()
-            ->forSingleton($pipe, $request, $this->repository->update($pipe, $request));
+            ->forSingleton($pipe->getEntity()->getName(), $request, $this->repository->update($pipe, $request, $this->factory->guard()->sentinel()));
     }
 }

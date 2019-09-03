@@ -40,8 +40,7 @@ class Factory
             'publicKeyPath',
             'privateKeyPath',
             'encryptionKey',
-            'grants',
-            'userRepository'
+            'grants'
         );
     }
 

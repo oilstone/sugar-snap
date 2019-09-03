@@ -7,10 +7,13 @@ use Api\Config\Service;
 
 class Factory
 {
+    protected $config;
+
     protected $leagueFactory;
 
     public function __construct(Service $config)
     {
+        $this->config = $config;
         $this->leagueFactory = new LeagueFactory($config);
     }
 
@@ -19,7 +22,7 @@ class Factory
      */
     public static function config()
     {
-        return LeagueFactory::config();
+        return LeagueFactory::config()->accepts('userRepository');
     }
 
     /**
@@ -30,9 +33,18 @@ class Factory
     public function sentinel($request, $pipeline)
     {
         return new Sentinel(
+            $request,
+            $pipeline,
+            $this->key($request)
+        );
+    }
+
+    public function key($request)
+    {
+        return new Key(
             $this->leagueFactory->resourceServer(),
             $request,
-            $pipeline
+            $this->config->get('userRepository')
         );
     }
 

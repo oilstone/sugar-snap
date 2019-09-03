@@ -2,10 +2,9 @@
 
 namespace Api\Repositories\Stitch;
 
+use Api\Guards\OAuth2\Sentinel;
 use Api\Pipeline\Pipe;
 use Api\Repositories\Contracts\Repository as RepositoryContract;
-use Api\Http\Requests\Relation as RequestRelation;
-use Api\Resources\Relations\Relation as ResourceRelation;
 use Api\Resources\Resource;
 use Exception;
 use Oilstone\RsqlParser\Condition;
@@ -54,9 +53,10 @@ class Repository implements RepositoryContract
     /**
      * @param Pipe $pipe
      * @param ServerRequestInterface $request
+     * @param Sentinel $sentinel
      * @return array
      */
-    public function getCollection(Pipe $pipe, ServerRequestInterface $request): array
+    public function getCollection(Pipe $pipe, ServerRequestInterface $request, Sentinel $sentinel): array
     {
         $relations = $request->getAttribute('relations');
 
@@ -74,9 +74,10 @@ class Repository implements RepositoryContract
     /**
      * @param Pipe $pipe
      * @param ServerRequestInterface $request
+     * @param Sentinel $sentinel
      * @return array
      */
-    public function getRecord(Pipe $pipe, ServerRequestInterface $request): array
+    public function getRecord(Pipe $pipe, ServerRequestInterface $request, Sentinel $sentinel): array
     {
         $relations = $request->getAttribute('relations');
 
@@ -214,6 +215,9 @@ class Repository implements RepositoryContract
                 });
             } else {
                 /** @var Condition $constraint */
+
+
+
                 $query->{$method}($constraint->getColumn(), $constraint->getOperator()->toSql(), $constraint->getValue());
             }
         }
@@ -224,11 +228,11 @@ class Repository implements RepositoryContract
     /**
      * @param Pipe $pipe
      * @param ServerRequestInterface $request
-     * @return mixed
+     * @param Sentinel $sentinel
+     * @return array
      * @throws Exception
-     * @todo Implement create() method.
      */
-    public function create(Pipe $pipe, ServerRequestInterface $request): array
+    public function create(Pipe $pipe, ServerRequestInterface $request, Sentinel $sentinel): array
     {
         throw new Exception('Method not yet implemented');
     }
@@ -236,11 +240,11 @@ class Repository implements RepositoryContract
     /**
      * @param Pipe $pipe
      * @param ServerRequestInterface $request
-     * @return mixed
+     * @param Sentinel $sentinel
+     * @return array
      * @throws Exception
-     * @todo Implement update() method.
      */
-    public function update(Pipe $pipe, ServerRequestInterface $request): array
+    public function update(Pipe $pipe, ServerRequestInterface $request, Sentinel $sentinel): array
     {
         throw new Exception('Method not yet implemented');
     }

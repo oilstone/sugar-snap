@@ -11,6 +11,8 @@ class Factory
 
     protected $OAuth2;
 
+    protected $sentinel;
+
     /**
      * Factory constructor.
      * @param Manager $config
@@ -41,13 +43,25 @@ class Factory
     }
 
     /**
-     * @param $request
-     * @param $pipeline
+     * @param mixed ...$arguments
      * @return mixed
      */
-    public function sentinel($request, $pipeline)
+    public function sentinel(...$arguments)
     {
-        return $this->{$this->config->getEnabled()}()->sentinel($request, $pipeline);
+        if (!$this->sentinel) {
+            $this->sentinel = $this->{$this->config->getEnabled()}()->sentinel(...$arguments);;
+        }
+
+        return $this->sentinel;
+    }
+
+    /**
+     * @param $request
+     * @return mixed
+     */
+    public function key($request)
+    {
+        return $this->{$this->config->getEnabled()}()->key($request);
     }
 
     /**

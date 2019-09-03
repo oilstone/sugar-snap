@@ -49,7 +49,7 @@ class Api
     }
 
     /**
-     *
+     * @throws Exception
      */
     public function authorise()
     {
@@ -67,6 +67,32 @@ class Api
             return $this->factory->guard()->authoriser($this->factory->request()->base())
                 ->authoriseAndFormatResponse($this->factory->response()->base());
         });
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function authorisedUser()
+    {
+        $this->emitResponse($this->generateAuthorisedUserResponse());
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function generateAuthorisedUserResponse()
+    {
+        $request = $this->factory->request()->base();
+        $key = $this->factory->guard()->key($request)->handle();
+        $user = $key->getUser();
+
+        unset($user['password']);
+
+        return $this->factory->response()->json(
+            $this->factory->spec()
+                ->representation()
+                ->forSingleton('user', $request, $user)
+        );
     }
 
     /**

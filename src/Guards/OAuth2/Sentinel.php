@@ -3,42 +3,29 @@
 namespace Api\Guards\OAuth2;
 
 use Api\Exceptions\ApiException;
-use Api\Guards\OAuth2\League\Exceptions\AuthException;
-use Api\Guards\OAuth2\Scopes\Collection as Scopes;
-use Api\Guards\OAuth2\Scopes\Scope;
 use Api\Pipeline\Pipeline;
 use Api\Resources\Resource;
-use League\OAuth2\Server\Exception\OAuthServerException;
-use League\OAuth2\Server\ResourceServer;
 use Psr\Http\Message\ServerRequestInterface;
 
 class Sentinel
 {
-    protected $server;
-
     protected $request;
 
     protected $pipeline;
 
-    protected $accessTokenId;
-
-    protected $clientId;
-
-    protected $userId;
-
-    protected $scopes;
+    protected $key;
 
     /**
      * Sentinel constructor.
-     * @param ResourceServer $server
      * @param ServerRequestInterface $request
      * @param Pipeline $pipeline
+     * @param Key $key
      */
-    public function __construct(ResourceServer $server, ServerRequestInterface $request, Pipeline $pipeline)
+    public function __construct(ServerRequestInterface $request, Pipeline $pipeline, Key $key)
     {
-        $this->server = $server;
         $this->request = $request;
         $this->pipeline = $pipeline;
+        $this->key = $key;
     }
 
     /**
@@ -47,8 +34,9 @@ class Sentinel
      */
     public function protect()
     {
-        $this->checkToken()
-            ->checkPipeline()
+        $this->key->handle();
+
+        $this->checkPipeline()
             ->checkRelations(
                 $this->pipeline->last()->getResource(),
                 $this->request->getAttribute('relations')
@@ -58,35 +46,11 @@ class Sentinel
     }
 
     /**
-     * @return $this
+     * @return null
      */
-    protected function checkToken()
+    public function getUser()
     {
-        try {
-            return $this->extractOauthAttributes(
-                $this->server->validateAuthenticatedRequest($this->request)
-            );
-        } catch (OAuthServerException $exception) {
-            throw (new AuthException())->setBaseException($exception);
-        }
-    }
-
-    /**
-     * @param ServerRequestInterface $request
-     * @return $this
-     */
-    protected function extractOauthAttributes(ServerRequestInterface $request)
-    {
-        $this->accessTokenId = $request->getAttribute('oauth_access_token_id');
-        $this->clientId = $request->getAttribute('oauth_client_id');
-        $this->userId = $request->getAttribute('oauth_user_id');
-
-        $this->scopes = (new Scopes())->fill(array_map(function ($scope)
-        {
-            return Scope::parse($scope);
-        }, $request->getAttribute('oauth_scopes')));
-
-        return $this;
+        return $this->key->getUser();
     }
 
     /**
@@ -132,7 +96,9 @@ class Sentinel
      */
     protected function verify(string $operation, string $resource)
     {
-        if ($this->scopes === null || !$this->scopes->can($operation, $resource)) {
+        $scopes = $this->key->getScopes();
+
+        if ($scopes === null || !$scopes->can($operation, $resource)) {
             $this->reject();
         }
     }

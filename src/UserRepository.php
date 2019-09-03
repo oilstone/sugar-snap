@@ -18,11 +18,22 @@ class UserRepository
     }
 
     /**
+     * @param $id
+     * @return mixed|null
+     */
+    public function getById($id)
+    {
+        $record = $this->model->find($id);
+
+        return $record ? $record->toArray() : null;
+    }
+
+    /**
      * @param $username
      * @param $password
      * @return mixed
      */
-    public function getByCredentials($username, $password)
+    public function getIdByCredentials($username, $password)
     {
         $record = $this->model->dehydrated()
             ->where('username', $username)

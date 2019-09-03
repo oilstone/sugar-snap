@@ -24,7 +24,7 @@ class User implements UserRepositoryInterface
      */
     public function getUserEntityByUserCredentials($username, $password, $grantType, ClientEntityInterface $clientEntity)
     {
-        $id = $this->baseRepository->getByCredentials($username, $password);
+        $id = $this->baseRepository->getIdByCredentials($username, $password);
 
         if ($id === null) {
             return null;

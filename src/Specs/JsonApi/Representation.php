@@ -34,17 +34,17 @@ class Representation implements RepresentationContract
     }
 
     /**
-     * @param Pipe $pipe
+     * @param string $name
      * @param ServerRequestInterface $request
      * @param array $collection
-     * @return array|mixed|string
+     * @return mixed|string
      */
-    public function forCollection(Pipe $pipe, ServerRequestInterface $request, array $collection)
+    public function forCollection(string $name, ServerRequestInterface $request, array $collection)
     {
         $this->encoder->withIncludedPaths($this->collapseRelations($request->getAttribute('relations') ?? []));
 
         return $this->encoder->encodeCollectionArray(
-            $pipe->getEntity()->getName(),
+            $name,
             $this->prepare($collection)
         );
     }
@@ -119,17 +119,17 @@ class Representation implements RepresentationContract
     }
 
     /**
-     * @param Pipe $pipe
+     * @param string $name
      * @param ServerRequestInterface $request
      * @param array $item
-     * @return array|mixed|string
+     * @return mixed|string
      */
-    public function forSingleton(Pipe $pipe, ServerRequestInterface $request, array $item)
+    public function forSingleton(string $name, ServerRequestInterface $request, array $item)
     {
         $this->encoder->withIncludedPaths($this->collapseRelations($request->getAttribute('relations') ?? []));
 
         return $this->encoder->encodeSingletonArray(
-            $pipe->getEntity()->getName(),
+            $name,
             $this->prepare($item)
         );
     }
