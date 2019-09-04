@@ -1,27 +1,33 @@
 {
-  "name": "oilstone/sugar-snap",
-  "description": "Api builder",
-  "keywords": [
-    "api",
-    "rest"
-  ],
-  "homepage": "https://github.com/oilstone/sugar-snap",
-  "license": "MIT",
-  "authors": [
-    {
-      "name": "Online Solutions",
-      "email": "support@onlinesolutionsltd.com"
+    "name": "oilstone/sugar-snap",
+    "description": "Api builder",
+    "keywords": [
+        "api",
+        "rest"
+    ],
+    "homepage": "https://github.com/oilstone/sugar-snap",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Online Solutions",
+            "email": "support@onlinesolutionsltd.com"
+        }
+    ],
+    "require": {
+        "php": "^7.1.3",
+        "oilstone/php-rsql-parser": "^1.0",
+        "oilstone/json-api": "^1.0",
+        "oilstone/stitch": "^1.0.0",
+        "league/oauth2-server": "^7.4",
+        "psr/http-message": "^1.0",
+        "nyholm/psr7": "^1.1",
+        "nyholm/psr7-server": "^0.3.0",
+        "zendframework/zend-httphandlerrunner": "^1.1",
+        "ext-json": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Api\\": "src/"
+        }
     }
-  ],
-  "require": {
-    "php": "^7.1.3",
-    "oilstone/php-rsql-parser": "^1.0",
-    "oilstone/json-api": "^1.0",
-    "ext-json": "*"
-  },
-  "autoload": {
-    "psr-4": {
-      "Api\\": "src/"
-    }
-  }
 }
