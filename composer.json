@@ -1,14 +1,16 @@
 {
-  "name": "garethhudson07/api",
-  "description": "Api builder.",
+  "name": "oilstone/sugar-snap",
+  "description": "Api builder",
   "keywords": [
     "api",
     "rest"
   ],
+  "homepage": "https://github.com/oilstone/sugar-snap",
   "license": "MIT",
   "authors": [
     {
-      "name": "Gareth Hudson"
+      "name": "Online Solutions",
+      "email": "support@onlinesolutionsltd.com"
     }
   ],
   "require": {
