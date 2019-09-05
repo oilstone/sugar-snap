@@ -92,7 +92,7 @@ class Representation implements RepresentationContract
     protected function encodeUtf8(array $data): array
     {
         return array_map(function ($datum) {
-            return is_array($datum) ? $this->encodeUtf8($datum) : (is_string($datum) ? utf8_encode($datum) : $datum);
+            return is_array($datum) ? $this->encodeUtf8($datum) : (is_string($datum) ? (mb_detect_encoding($datum) !== 'UTF-8' ? utf8_encode($datum) : $datum) : $datum);
         }, $data);
     }
 
