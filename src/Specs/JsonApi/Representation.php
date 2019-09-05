@@ -73,12 +73,15 @@ class Representation implements RepresentationContract
         return $collapsed;
     }
 
+
+
     /**
      * @param mixed $data
      * @return mixed
      */
     protected function prepare($data)
     {
+        $data = $this->decodeHtml($data);
         $data = $this->encodeUtf8($data);
         $data = $this->camelKeys($data);
 
@@ -89,10 +92,21 @@ class Representation implements RepresentationContract
      * @param array $data
      * @return array
      */
+    protected function decodeHtml(array $data): array
+    {
+        return array_map(function ($datum) {
+            return is_array($datum) ? $this->decodeHtml($datum) : (is_string($datum) ? html_entity_decode($datum) : $datum);
+        }, $data);
+    }
+
+    /**
+     * @param array $data
+     * @return array
+     */
     protected function encodeUtf8(array $data): array
     {
         return array_map(function ($datum) {
-            return is_array($datum) ? $this->encodeUtf8($datum) : (is_string($datum) ? (mb_detect_encoding($datum) !== 'UTF-8' ? utf8_encode($datum) : $datum) : $datum);
+            return is_array($datum) ? $this->encodeUtf8($datum) : (is_string($datum) && mb_detect_encoding($datum) !== 'UTF-8' ? utf8_encode($datum) : $datum);
         }, $data);
     }
 
