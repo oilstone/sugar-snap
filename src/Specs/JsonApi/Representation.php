@@ -2,15 +2,13 @@
 
 namespace Api\specs\JsonApi;
 
-use Api\Pipeline\Pipe;
 use Api\Specs\Contracts\Representation as RepresentationContract;
-use Api\Requests\Relation;
 use Api\Support\Str;
+use ForceUTF8\Encoding;
 use Neomerx\JsonApi\Encoder\Encoder;
 use Neomerx\JsonApi\Schema\Arr as ArrSchema;
 use Neomerx\JsonApi\Wrappers\Arr;
 use Psr\Http\Message\ServerRequestInterface;
-use function utf8_encode;
 
 /**
  * Class JsonApi
@@ -58,7 +56,6 @@ class Representation implements RepresentationContract
         $collapsed = [];
 
         foreach ($relations as $relation) {
-            /** @var Relation $relation */
             if ($relation->getRelations()) {
                 $collapsed = array_merge($collapsed, array_map(function ($subRelation) use ($relation) {
                     return Str::camel($relation->getName()) . '.' . $subRelation;
@@ -72,7 +69,6 @@ class Representation implements RepresentationContract
 
         return $collapsed;
     }
-
 
 
     /**
@@ -102,7 +98,7 @@ class Representation implements RepresentationContract
                 return $datum;
             }
 
-            return utf8_encode($datum);
+            return Encoding::toUTF8($datum);
         }, $data);
     }
 
