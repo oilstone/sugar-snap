@@ -23,7 +23,8 @@
         "nyholm/psr7": "^1.1",
         "nyholm/psr7-server": "^0.3.0",
         "zendframework/zend-httphandlerrunner": "^1.1",
-        "ext-json": "*"
+        "ext-json": "*",
+        "ext-mbstring": "*"
     },
     "autoload": {
         "psr-4": {

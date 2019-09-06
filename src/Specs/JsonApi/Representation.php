@@ -30,7 +30,7 @@ class Representation implements RepresentationContract
     {
         $this->encoder = Encoder::instance([
             Arr::class => ArrSchema::class
-        ])->withEncodeOptions(JSON_PRETTY_PRINT);
+        ])->withEncodeOptions(JSON_PRETTY_PRINT | JSON_INVALID_UTF8_IGNORE);
     }
 
     /**
@@ -81,7 +81,6 @@ class Representation implements RepresentationContract
      */
     protected function prepare($data)
     {
-        $data = $this->decodeHtml($data);
         $data = $this->encodeUtf8($data);
         $data = $this->camelKeys($data);
 
@@ -92,21 +91,18 @@ class Representation implements RepresentationContract
      * @param array $data
      * @return array
      */
-    protected function decodeHtml(array $data): array
-    {
-        return array_map(function ($datum) {
-            return is_array($datum) ? $this->decodeHtml($datum) : (is_string($datum) ? html_entity_decode($datum) : $datum);
-        }, $data);
-    }
-
-    /**
-     * @param array $data
-     * @return array
-     */
     protected function encodeUtf8(array $data): array
     {
         return array_map(function ($datum) {
-            return is_array($datum) ? $this->encodeUtf8($datum) : (is_string($datum) && mb_detect_encoding($datum) !== 'UTF-8' ? utf8_encode($datum) : $datum);
+            if (is_array($datum)) {
+                return $this->encodeUtf8($datum);
+            }
+
+            if (!is_string($datum)) {
+                return $datum;
+            }
+
+            return utf8_encode($datum);
         }, $data);
     }
 
