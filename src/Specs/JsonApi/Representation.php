@@ -81,22 +81,10 @@ class Representation implements RepresentationContract
      */
     protected function prepare($data)
     {
-        $data = $this->decodeHtml($data);
         $data = $this->encodeUtf8($data);
         $data = $this->camelKeys($data);
 
         return $data;
-    }
-
-    /**
-     * @param array $data
-     * @return array
-     */
-    protected function decodeHtml(array $data): array
-    {
-        return array_map(function ($datum) {
-            return is_array($datum) ? $this->decodeHtml($datum) : (is_string($datum) ? html_entity_decode($datum) : $datum);
-        }, $data);
     }
 
     /**
@@ -114,11 +102,7 @@ class Representation implements RepresentationContract
                 return $datum;
             }
 
-            if (mb_detect_encoding($datum) === false) {
-                return '';
-            }
-
-            return mb_detect_encoding($datum) !== 'UTF-8' ? utf8_encode($datum) : $datum;
+            return utf8_encode($datum);
         }, $data);
     }
 
