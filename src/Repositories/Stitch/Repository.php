@@ -248,4 +248,13 @@ class Repository implements RepositoryContract
     {
         throw new Exception('Method not yet implemented');
     }
+
+    /**
+     * @inheritDoc
+     * @throws Exception
+     */
+    public function delete(Pipe $pipe, ServerRequestInterface $request, Sentinel $sentinel): array
+    {
+        throw new Exception('Method not yet implemented');
+    }
 }
