@@ -49,4 +49,12 @@ interface Repository
      * @return array
      */
     public function update(Pipe $pipe, ServerRequestInterface $request, Sentinel $sentinel): array;
+
+    /**
+     * @param Pipe $pipe
+     * @param ServerRequestInterface $request
+     * @param Sentinel $sentinel
+     * @return array
+     */
+    public function delete(Pipe $pipe, ServerRequestInterface $request, Sentinel $sentinel): array;
 }
