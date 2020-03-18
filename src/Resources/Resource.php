@@ -3,7 +3,6 @@
 namespace Api\Resources;
 
 use Api\Factory;
-use Api\Guards\OAuth2\Sentinel;
 use Api\Pipeline\Pipe;
 use Api\Repositories\Contracts\Repository;
 use Api\Resources\Relations\Stitch\BelongsTo;
@@ -282,5 +281,22 @@ class Resource
         return $this->factory->spec()
             ->representation()
             ->forSingleton($pipe->getEntity()->getName(), $request, $this->repository->update($pipe, $request, $this->factory->guard()->sentinel()));
+    }
+
+    /**
+     * @param Pipe $pipe
+     * @param ServerRequestInterface $request
+     * @return mixed
+     * @throws Exception
+     */
+    public function destroy(Pipe $pipe, ServerRequestInterface $request)
+    {
+        if (!$this->endpointEnabled('destroy')) {
+            throw new Exception("The destroy endpoint is not available on the $this->name resource");
+        }
+
+        return $this->factory->spec()
+            ->representation()
+            ->forSingleton($pipe->getEntity()->getName(), $request, $this->repository->delete($pipe, $request, $this->factory->guard()->sentinel()));
     }
 }
